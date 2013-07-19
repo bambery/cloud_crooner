@@ -1,9 +1,11 @@
-require 'sinatra/base'
-
 module Sinatra
   module CloudCrooner
-    module Config
+    class Config
+      attr_accessor :prefix
+      attr_accessor :local_assets_dir
 
-    end
+
+      end
+
   end
 end

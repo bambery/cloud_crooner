@@ -1,4 +1,3 @@
-require 'sinatra/base'
 require 'sprockets'
 
 module Sinatra
@@ -9,6 +8,7 @@ module Sinatra
     def configure_cloud_crooner(&proc)
       CloudCrooner.configure do |config|
         with_setting(:assets_prefix) { |value| config.prefix = value }
+        with_setting(:public_folder) { |value| config.local_assets_dir = value}
 
       end
     end
@@ -16,15 +16,15 @@ module Sinatra
     def with_setting(name, &proc)
       raise MissingAssetPrefix unless settings.respond_to?(name)
 
-      val = settings.send(name)
+      val = settings.__send__(name)
       yield val unless val.nil? 
     end
 
     class << self
-      def registered(app)
+      def registered(foo)
         # create a manifest if there isn't one
-        app.set :manifest, Sprockets::Manifest.new(app.settings.sprockets, File.join(app.settings.public_folder, app.settings.assets_prefix)) unless app.respond_to?(:manifest)
-
+        foo.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless foo.respond_to?(:manifest)
+        foo.configure_cloud_crooner
       end
 
       def config=(data)
@@ -33,6 +33,7 @@ module Sinatra
 
       def config
         @config ||= Config.new
+        @config
       end
 
       def configure(&proc)
@@ -42,8 +43,6 @@ module Sinatra
 
     end
   end
-
-  register CloudCrooner
 end
 
 

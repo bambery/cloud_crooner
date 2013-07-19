@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+register Sinatra::CloudCrooner must be done after the configure block.
 
 ## Contributing
 

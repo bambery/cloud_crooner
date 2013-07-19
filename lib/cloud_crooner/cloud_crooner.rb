@@ -3,18 +3,18 @@ require 'sprockets'
 module Sinatra
   module CloudCrooner
 
-    class MissingAssetPrefix < StandardError; end 
+    class MissingRequiredSetting < StandardError; end 
 
     def configure_cloud_crooner(&proc)
       CloudCrooner.configure do |config|
         with_setting(:assets_prefix) { |value| config.prefix = value }
-        with_setting(:public_folder) { |value| config.local_assets_dir = value}
+        with_setting(:manifest) { |value| config.local_assets_dir = value.dir}
 
       end
     end
 
     def with_setting(name, &proc)
-      raise MissingAssetPrefix unless settings.respond_to?(name)
+      raise MissingRequiredSetting unless settings.respond_to?(name)
 
       val = settings.__send__(name)
       yield val unless val.nil? 

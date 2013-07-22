@@ -55,98 +55,65 @@ describe CloudCrooner do
       end # end context with defaults with manifest 
 
       context "with custom settings" do
-        it "uses the custom prefix" do
+        before(:each) do
           custom_env = Sprockets::Environment.new
 
-          app = Class.new(Sinatra::Base) do
+          @app = Class.new(Sinatra::Base) do
             set :sprockets, custom_env
             set :assets_prefix, '/static'
             set :manifest, Proc.new { Sprockets::Manifest.new(sprockets, File.join(root, 'foo/bar')) }
 
             register Sinatra::CloudCrooner
-
-            Sinatra::CloudCrooner.configure do |config|
-              config.prefix = "/moogles"
-            end
           end
+        end
 
-            expect(Sinatra::CloudCrooner.config.prefix).to eq('/moogles')
-          end
+        it "uses the custom prefix" do
+          Sinatra::CloudCrooner.config.prefix = "/moogles"
+
+          expect(Sinatra::CloudCrooner.config.prefix).to eq('/moogles')
+        end
 
         it "does not use a custom local assets directory" do
-          custom_env = Sprockets::Environment.new
+          Sinatra::CloudCrooner.config.local_assets_dir = "/chocobo"
 
-          app = Class.new(Sinatra::Base) do
-            set :sprockets, custom_env
-            set :assets_prefix, "/static"
-            set :manifest, Proc.new { Sprockets::Manifest.new(sprockets, File.join(root, 'foo/bar')) }
+          expect(Sinatra::CloudCrooner.config.local_assets_dir).to eq(File.dirname(@app.manifest.path))
+        end
 
-            register Sinatra::CloudCrooner
-
-            Sinatra::CloudCrooner.configure do |config|
-              config.local_assets_dir = "/chocobo"
-            end
-          end
-
-          expect(Sinatra::CloudCrooner.config.local_assets_dir).to eq(File.dirname(app.manifest.path))
-          end
-
-      end # end context custom settings 
+        end # end context custom settings 
 
     end # end context using settings from the environment 
 
     describe "cleaning up remote assets" do
-      context "defaults" do
-        before(:each) do
-          custom_env = Sprockets::Environment.new
+      before(:each) do
+        custom_env = Sprockets::Environment.new
 
-          app = Class.new(Sinatra::Base) do
-            set :sprockets, custom_env
-            set :assets_prefix, "/static"
+        app = Class.new(Sinatra::Base) do
+          set :sprockets, custom_env
+          set :assets_prefix, "/static"
 
-            register Sinatra::CloudCrooner
-          
-          end
+          register Sinatra::CloudCrooner
+        
         end
+      end
 
-        it "defaults to true" do
-          expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_true
-        end
+      it "defaults to true" do
+        expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_true
+      end
 
-        it "defaults to 2 backups" do
-          expect(Sinatra::CloudCrooner.config.backups_to_keep).to eq(2)
-        end
+      it "defaults to 2 backups" do
+        expect(Sinatra::CloudCrooner.config.backups_to_keep).to eq(2)
       end
 
       it "can be disabled" do
-        custom_env = Sprockets::Environment.new
-
-        app = Class.new(Sinatra::Base) do
-          set :sprockets, custom_env
-          set :assets_prefix, "/static"
-
-          register Sinatra::CloudCrooner
-
-          Sinatra::CloudCrooner.configure{|config| config.clean_up_remote= false}
-        end
-        
+        Sinatra::CloudCrooner.configure{|config| config.clean_up_remote= false}
+      
         expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_false 
       end
-      
+    
       it "sets the number of backups to keep" do
-        custom_env = Sprockets::Environment.new
-
-        app = Class.new(Sinatra::Base) do
-          set :sprockets, custom_env
-          set :assets_prefix, "/static"
-
-          register Sinatra::CloudCrooner
-
-          Sinatra::CloudCrooner.configure{|config| config.backups_to_keep= 5}
-        end
+        Sinatra::CloudCrooner.configure{|config| config.backups_to_keep= 5}
         
         expect(Sinatra::CloudCrooner.config.backups_to_keep).to eq(5)
-      
       end
 
     end # cleaning up remote assets
@@ -175,7 +142,13 @@ describe CloudCrooner do
         expect(Sinatra::CloudCrooner.config.bucket_name).to eq("test-bucket")
       end
 
-    end
+      it "allows a custom bucket to be set" do
+        Sinatra::CloudCrooner.config.bucket_name = "foo_bucket"
+
+        expect(Sinatra::CloudCrooner.config.bucket_name).to eq("foo_bucket")
+      end
+
+    end # end before each
   end # end describe configuration
 end
 

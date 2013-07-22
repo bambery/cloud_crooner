@@ -43,23 +43,31 @@ module Sinatra
       end
       attr_writer :backups_to_keep
 
-      # region of your AWS bucket, should be stored in ENV
+      # region of your AWS bucket, should be stored in ENV but can be overwritten in config block
       # while not technically required by fog, aws will complain bitterly and has a hit on efficiency
       def region
-        return if @region
-        if @region.nil? && ENV.has_key?('AWS_REGION') 
-          VALID_AWS_REGIONS.include?(ENV['AWS_REGION']) ? (return @region = ENV['AWS_REGION']) : (raise FogSettingError, "Invalid region") 
-        else 
-          raise FogSettingError, "AWS Region must either be set in ENV or in configure block." 
+        if @region
+          return @region
+        elsif !ENV.has_key?('AWS_REGION')
+          raise FogSettingError, "AWS Region must be set in ENV or in configure block"
+        elsif !VALID_AWS_REGIONS.include?(ENV['AWS_REGION'])
+          raise FogSettingError, "Invalid region"
         end
+        @region = ENV['AWS_REGION']
       end
 
       def region=(val)
         VALID_AWS_REGIONS.include?(val) ? @region = val : (raise FogSettingError, "Invalid region") 
       end
 
+      # AWS bucket name, should be stored in ENV but can be overwritten in config block
       def bucket_name 
-        @bucket_name = ENV['AWS_BUCKET_NAME'] if @bucket_name.nil? && ENV.has_key?('AWS_BUCKET_NAME') 
+        if @bucket_name
+          return @bucket_name
+        elsif !ENV.has_key?('AWS_BUCKET_NAME')
+          raise FogSettingError, "Bucket name must be set in ENV or configure block"
+        end
+        @bucket_name = ENV['AWS_BUCKET_NAME'] 
       end
       attr_writer :bucket_name
 

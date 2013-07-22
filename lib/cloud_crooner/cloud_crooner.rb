@@ -19,7 +19,6 @@ module Sinatra
         with_setting(:assets_prefix) { |value| config.prefix = value }
         with_setting(:manifest) { |value| config.local_assets_dir = value.dir}
       end
-      CloudCrooner.configure(&proc) if block_given?
     end
 
     def with_setting(name, &proc)

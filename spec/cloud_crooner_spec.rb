@@ -14,7 +14,7 @@ describe CloudCrooner do
             register Sinatra::CloudCrooner
           end
 
-        end
+        end # end before each
 
         it "creates a manifest " do
           expect(@app.manifest).to be_an_instance_of(Sprockets::Manifest)
@@ -94,6 +94,38 @@ describe CloudCrooner do
       end # end context custom settings 
 
     end # end context using settings from the environment 
+
+    describe "cleaning up remote assets" do
+      it "defaults to true" do
+        custom_env = Sprockets::Environment.new
+
+        app = Class.new(Sinatra::Base) do
+          set :sprockets, custom_env
+          set :assets_prefix, "/static"
+
+          register Sinatra::CloudCrooner
+        
+        end
+
+        expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_true
+      end
+
+      it "accepts a false value" do
+        custom_env = Sprockets::Environment.new
+
+        app = Class.new(Sinatra::Base) do
+          set :sprockets, custom_env
+          set :assets_prefix, "/static"
+
+          register Sinatra::CloudCrooner
+
+          Sinatra::CloudCrooner.configure{|config| config.clean_up_remote= false}
+        end
+        
+        expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_false 
+      end
+
+    end # cleaning up remote assets
   end # end describe configuration
 end
 

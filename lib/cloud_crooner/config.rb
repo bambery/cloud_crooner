@@ -29,10 +29,12 @@ module Sinatra
       end
       attr_reader :local_assets_dir
 
-
-
-
+      # whether to delete remote assets which are no longer in the manifest 
+      def clean_up_remote 
+        @clean_up_remote.nil? ? true : @clean_up_remote 
       end
+      attr_writer :clean_up_remote 
 
+    end
   end
 end

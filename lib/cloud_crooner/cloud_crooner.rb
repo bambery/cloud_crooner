@@ -3,28 +3,38 @@ require 'sprockets'
 module Sinatra
   module CloudCrooner
 
-    class MissingRequiredSetting < StandardError; end 
+    class MissingRequiredSetting < StandardError
+      def initialize(name)
+        @name = name
+      end
+
+      def message 
+        "Your app is missing a required setting: #{@name.to_s}"
+      end
+    end
+
 
     def configure_cloud_crooner(&proc)
       CloudCrooner.configure do |config|
         with_setting(:assets_prefix) { |value| config.prefix = value }
         with_setting(:manifest) { |value| config.local_assets_dir = value.dir}
-
       end
+      CloudCrooner.configure(&proc) if block_given?
     end
 
     def with_setting(name, &proc)
-      raise MissingRequiredSetting unless settings.respond_to?(name)
+      raise MissingRequiredSetting.new(name) unless settings.respond_to?(name)
 
       val = settings.__send__(name)
       yield val unless val.nil? 
     end
 
     class << self
-      def registered(foo)
+      def registered(app)
         # create a manifest if there isn't one
-        foo.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless foo.respond_to?(:manifest)
-        foo.configure_cloud_crooner
+        app.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless app.settings.respond_to?(:manifest)
+        @config = Config.new
+        app.configure_cloud_crooner
       end
 
       def config=(data)

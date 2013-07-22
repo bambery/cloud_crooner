@@ -1,8 +1,8 @@
 module Sinatra
   module CloudCrooner
+    class FogSettingError < StandardError; end
     class Config
 
-      class FogSettingError < StandardError; end
 
       # Any settings that depend on app settings are assigned in cloud_crooner.rb in the configure_cloud_crooner method. Other defaults are set here.
 
@@ -44,7 +44,7 @@ module Sinatra
       attr_writer :backups_to_keep
 
       # region of your AWS bucket, should be stored in ENV but can be overwritten in config block
-      # while not technically required by fog, aws will complain bitterly and has a hit on efficiency
+      # while not technically required by fog, aws will complain bitterly and has a hit on performance 
       def region
         if @region
           return @region
@@ -70,6 +70,19 @@ module Sinatra
         @bucket_name = ENV['AWS_BUCKET_NAME'] 
       end
       attr_writer :bucket_name
+
+      def aws_access_key_id
+        if @aws_access_key_id
+          return @aws_access_key_id
+        elsif !ENV.has_key?('AWS_ACCESS_KEY_ID')
+          raise FogSettingError, "AWS_ACCESS_KEY_ID must be set in ENV"
+        end
+        @aws_access_key_id ||= ENV['AWS_ACCESS_KEY_ID']
+      end
+
+      def aws_access_key_id=(val)
+        raise FogSettingError, "AWS_ACCESS_KEY_ID is sensitive data that should not be placed where it can be checked into source control. Please set it in ENV."
+      end
 
     end
   end

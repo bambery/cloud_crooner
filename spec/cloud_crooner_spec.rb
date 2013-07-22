@@ -120,10 +120,11 @@ describe CloudCrooner do
 
     describe "fog settings in env" do
       before(:each) do
-        ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
-        ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
-        ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
-        ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
+        ENV.stub(:has_key?).and_return(false)
+        ENV.stub(:[]).and_return(nil)
+                ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
+        ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
+
         custom_env = Sprockets::Environment.new
 
         app = Class.new(Sinatra::Base) do
@@ -134,21 +135,91 @@ describe CloudCrooner do
         end
       end
 
-      it "assigns the region" do
-        expect(Sinatra::CloudCrooner.config.region).to eq("eu-west-1")
+      context "region" do
+        it "assigns from ENV" do
+          ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
+          ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
+
+          expect(Sinatra::CloudCrooner.config.region).to eq("eu-west-1")
+        end
+
+        it "errors if the ENV region is not valid" do
+          ENV.stub(:[]).with("AWS_REGION").and_return("shangrila")
+          ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
+
+          expect{Sinatra::CloudCrooner.config.region}.to raise_error(Sinatra::CloudCrooner::FogSettingError)
+        end
+
+        it "allows region to be set in config if none in env" do
+          Sinatra::CloudCrooner.config.region = "us-west-2"
+
+          expect(Sinatra::CloudCrooner.config.region).to eq("us-west-2")
+        end
+
+        it "allows region to be set in config and overwrites ENV setting" do
+          ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
+          ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
+          Sinatra::CloudCrooner.config.region = "us-west-2"
+
+          expect(Sinatra::CloudCrooner.config.region).to eq("us-west-2")
+        end
+
+        it "errors if config region is not valid" do
+          expect{Sinatra::CloudCrooner.config.region = "el-dorado"}.to raise_error(Sinatra::CloudCrooner::FogSettingError)
+        end
+
+        it "errors if region is not assigned" do
+          expect{Sinatra::CloudCrooner.config.region}.to raise_error(Sinatra::CloudCrooner::FogSettingError, "AWS Region must be set in ENV or in configure block")
+        end
+      end # end region
+
+      context "bucket name" do
+
+        it "assigns from ENV" do
+          ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
+          ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
+
+          expect(Sinatra::CloudCrooner.config.bucket_name).to eq("test-bucket")
+        end
+
+        it "allows bucket to be set in config and overwrites ENV setting" do
+          ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
+          ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
+          Sinatra::CloudCrooner.config.bucket_name = "foo_bucket"
+
+          expect(Sinatra::CloudCrooner.config.bucket_name).to eq("foo_bucket")
+        end
+
+        it "allows bucket to be set in config if none in env" do
+          Sinatra::CloudCrooner.config.bucket_name= "bar_bucket"
+
+          expect(Sinatra::CloudCrooner.config.bucket_name).to eq("bar_bucket")
+        end
+
+        it "errors if the bucket is not set" do
+          expect{Sinatra::CloudCrooner.config.bucket_name}.to raise_error(Sinatra::CloudCrooner::FogSettingError, "Bucket name must be set in ENV or configure block")
+        end
+
+      end # bucket name
+
+      context "AWS access key id" do
+        it "set from ENV" do
+          ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
+          ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
+
+          expect(Sinatra::CloudCrooner.config.aws_access_key_id).to eq("asdf123")
+        end
+
+        it "cannot be set from config" do
+          expect{Sinatra::CloudCrooner.config.aws_access_key_id = "xyz098"}.to raise_error(Sinatra::CloudCrooner::FogSettingError) 
+        end
+
+        it "errors if missing from ENV" do
+          expect{Sinatra::CloudCrooner.config.aws_access_key_id}.to raise_error
+        end
+
       end
-
-      it "assigns the bucket name" do
-        expect(Sinatra::CloudCrooner.config.bucket_name).to eq("test-bucket")
-      end
-
-      it "allows a custom bucket to be set" do
-        Sinatra::CloudCrooner.config.bucket_name = "foo_bucket"
-
-        expect(Sinatra::CloudCrooner.config.bucket_name).to eq("foo_bucket")
-      end
-
-    end # end before each
+    end # end fog configuration 
   end # end describe configuration
 end
 

@@ -96,21 +96,29 @@ describe CloudCrooner do
     end # end context using settings from the environment 
 
     describe "cleaning up remote assets" do
-      it "defaults to true" do
-        custom_env = Sprockets::Environment.new
+      context "defaults" do
+        before(:each) do
+          custom_env = Sprockets::Environment.new
 
-        app = Class.new(Sinatra::Base) do
-          set :sprockets, custom_env
-          set :assets_prefix, "/static"
+          app = Class.new(Sinatra::Base) do
+            set :sprockets, custom_env
+            set :assets_prefix, "/static"
 
-          register Sinatra::CloudCrooner
-        
+            register Sinatra::CloudCrooner
+          
+          end
         end
 
-        expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_true
+        it "defaults to true" do
+          expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_true
+        end
+
+        it "defaults to 2 backups" do
+          expect(Sinatra::CloudCrooner.config.backups_to_keep).to eq(2)
+        end
       end
 
-      it "accepts a false value" do
+      it "can be disabled" do
         custom_env = Sprockets::Environment.new
 
         app = Class.new(Sinatra::Base) do
@@ -124,8 +132,50 @@ describe CloudCrooner do
         
         expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_false 
       end
+      
+      it "sets the number of backups to keep" do
+        custom_env = Sprockets::Environment.new
+
+        app = Class.new(Sinatra::Base) do
+          set :sprockets, custom_env
+          set :assets_prefix, "/static"
+
+          register Sinatra::CloudCrooner
+
+          Sinatra::CloudCrooner.configure{|config| config.backups_to_keep= 5}
+        end
+        
+        expect(Sinatra::CloudCrooner.config.backups_to_keep).to eq(5)
+      
+      end
 
     end # cleaning up remote assets
+
+    describe "fog settings in env" do
+      before(:each) do
+        ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
+        ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
+        ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
+        ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
+        custom_env = Sprockets::Environment.new
+
+        app = Class.new(Sinatra::Base) do
+          set :sprockets, custom_env
+          set :assets_prefix, "/static"
+
+          register Sinatra::CloudCrooner
+        end
+      end
+
+      it "assigns the region" do
+        expect(Sinatra::CloudCrooner.config.region).to eq("eu-west-1")
+      end
+
+      it "assigns the bucket name" do
+        expect(Sinatra::CloudCrooner.config.bucket_name).to eq("test-bucket")
+      end
+
+    end
   end # end describe configuration
 end
 

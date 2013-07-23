@@ -11,7 +11,7 @@ describe CloudCrooner do
             set :sprockets, custom_env
             set :assets_prefix, '/static'
 
-            register Sinatra::CloudCrooner
+            register CloudCrooner
           end
 
         end # end before each
@@ -23,11 +23,11 @@ describe CloudCrooner do
          end
 
         it "sets the prefix to the app's asset_prefix" do
-          expect(Sinatra::CloudCrooner.config.prefix).to eq('/static')
+          expect(CloudCrooner.config.prefix).to eq('/static')
         end
 
         it "sets location of static assets to parent dir of manifest" do
-            expect(Sinatra::CloudCrooner.config.local_assets_dir).to eq(File.join(@app.settings.root, 'public/static'))
+            expect(CloudCrooner.config.local_assets_dir).to eq(File.join(@app.settings.root, 'public/static'))
         end
       end # end with defaults without manifest
 
@@ -40,7 +40,7 @@ describe CloudCrooner do
             set :assets_prefix, '/static'
             set :manifest, Proc.new { Sprockets::Manifest.new(sprockets, File.join(root, 'foo/bar')) }
 
-            register Sinatra::CloudCrooner
+            register CloudCrooner
           end
         end
 
@@ -50,7 +50,7 @@ describe CloudCrooner do
         end
 
         it "sets the location of static assets to the parent directory of the manifest", :meow =>true  do
-          expect(Sinatra::CloudCrooner.config.local_assets_dir).to eq(File.dirname(@app.manifest.path))
+          expect(CloudCrooner.config.local_assets_dir).to eq(File.dirname(@app.manifest.path))
         end
       end # end context with defaults with manifest 
 
@@ -63,20 +63,20 @@ describe CloudCrooner do
             set :assets_prefix, '/static'
             set :manifest, Proc.new { Sprockets::Manifest.new(sprockets, File.join(root, 'foo/bar')) }
 
-            register Sinatra::CloudCrooner
+            register CloudCrooner
           end
         end
 
         it "uses the custom prefix" do
-          Sinatra::CloudCrooner.config.prefix = "/moogles"
+          CloudCrooner.config.prefix = "/moogles"
 
-          expect(Sinatra::CloudCrooner.config.prefix).to eq('/moogles')
+          expect(CloudCrooner.config.prefix).to eq('/moogles')
         end
 
         it "does not use a custom local assets directory" do
-          Sinatra::CloudCrooner.config.local_assets_dir = "/chocobo"
+          CloudCrooner.config.local_assets_dir = "/chocobo"
 
-          expect(Sinatra::CloudCrooner.config.local_assets_dir).to eq(File.dirname(@app.manifest.path))
+          expect(CloudCrooner.config.local_assets_dir).to eq(File.dirname(@app.manifest.path))
         end
 
         end # end context custom settings 
@@ -91,29 +91,29 @@ describe CloudCrooner do
           set :sprockets, custom_env
           set :assets_prefix, "/static"
 
-          register Sinatra::CloudCrooner
+          register CloudCrooner
         
         end
       end
 
       it "defaults to true" do
-        expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_true
+        expect(CloudCrooner.config.clean_up_remote).to be_true
       end
 
       it "defaults to 2 backups" do
-        expect(Sinatra::CloudCrooner.config.backups_to_keep).to eq(2)
+        expect(CloudCrooner.config.backups_to_keep).to eq(2)
       end
 
       it "can be disabled" do
-        Sinatra::CloudCrooner.configure{|config| config.clean_up_remote= false}
+        CloudCrooner.configure{|config| config.clean_up_remote= false}
       
-        expect(Sinatra::CloudCrooner.config.clean_up_remote).to be_false 
+        expect(CloudCrooner.config.clean_up_remote).to be_false 
       end
     
       it "sets the number of backups to keep" do
-        Sinatra::CloudCrooner.configure{|config| config.backups_to_keep= 5}
+        CloudCrooner.configure{|config| config.backups_to_keep= 5}
         
-        expect(Sinatra::CloudCrooner.config.backups_to_keep).to eq(5)
+        expect(CloudCrooner.config.backups_to_keep).to eq(5)
       end
 
     end # cleaning up remote assets
@@ -129,7 +129,7 @@ describe CloudCrooner do
           set :sprockets, custom_env
           set :assets_prefix, "/static"
 
-          register Sinatra::CloudCrooner
+          register CloudCrooner
         end
       end
 
@@ -138,36 +138,36 @@ describe CloudCrooner do
           ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
           ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
 
-          expect(Sinatra::CloudCrooner.config.region).to eq("eu-west-1")
+          expect(CloudCrooner.config.region).to eq("eu-west-1")
         end
 
         it "errors if the ENV region is not valid" do
           ENV.stub(:[]).with("AWS_REGION").and_return("shangrila")
           ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
 
-          expect{Sinatra::CloudCrooner.config.region}.to raise_error(Sinatra::CloudCrooner::FogSettingError)
+          expect{CloudCrooner.config.region}.to raise_error(CloudCrooner::FogSettingError)
         end
 
         it "allows region to be set in config if none in env" do
-          Sinatra::CloudCrooner.config.region = "us-west-2"
+          CloudCrooner.config.region = "us-west-2"
 
-          expect(Sinatra::CloudCrooner.config.region).to eq("us-west-2")
+          expect(CloudCrooner.config.region).to eq("us-west-2")
         end
 
         it "allows region to be set in config and overwrites ENV setting" do
           ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
           ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
-          Sinatra::CloudCrooner.config.region = "us-west-2"
+          CloudCrooner.config.region = "us-west-2"
 
-          expect(Sinatra::CloudCrooner.config.region).to eq("us-west-2")
+          expect(CloudCrooner.config.region).to eq("us-west-2")
         end
 
         it "errors if config region is not valid" do
-          expect{Sinatra::CloudCrooner.config.region = "el-dorado"}.to raise_error(Sinatra::CloudCrooner::FogSettingError)
+          expect{CloudCrooner.config.region = "el-dorado"}.to raise_error(CloudCrooner::FogSettingError)
         end
 
         it "errors if region is not assigned" do
-          expect{Sinatra::CloudCrooner.config.region}.to raise_error(Sinatra::CloudCrooner::FogSettingError, "AWS Region must be set in ENV or in configure block")
+          expect{CloudCrooner.config.region}.to raise_error(CloudCrooner::FogSettingError, "AWS Region must be set in ENV or in configure block")
         end
       end # end region
 
@@ -177,25 +177,25 @@ describe CloudCrooner do
           ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
           ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
 
-          expect(Sinatra::CloudCrooner.config.bucket_name).to eq("test-bucket")
+          expect(CloudCrooner.config.bucket_name).to eq("test-bucket")
         end
 
         it "allows bucket to be set in config and overwrites ENV setting" do
           ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
           ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
-          Sinatra::CloudCrooner.config.bucket_name = "foo_bucket"
+          CloudCrooner.config.bucket_name = "foo_bucket"
 
-          expect(Sinatra::CloudCrooner.config.bucket_name).to eq("foo_bucket")
+          expect(CloudCrooner.config.bucket_name).to eq("foo_bucket")
         end
 
         it "allows bucket to be set in config if none in env" do
-          Sinatra::CloudCrooner.config.bucket_name= "bar_bucket"
+          CloudCrooner.config.bucket_name= "bar_bucket"
 
-          expect(Sinatra::CloudCrooner.config.bucket_name).to eq("bar_bucket")
+          expect(CloudCrooner.config.bucket_name).to eq("bar_bucket")
         end
 
         it "errors if the bucket is not set" do
-          expect{Sinatra::CloudCrooner.config.bucket_name}.to raise_error(Sinatra::CloudCrooner::FogSettingError, "Bucket name must be set in ENV or configure block")
+          expect{CloudCrooner.config.bucket_name}.to raise_error(CloudCrooner::FogSettingError, "Bucket name must be set in ENV or configure block")
         end
 
       end # bucket name
@@ -205,15 +205,15 @@ describe CloudCrooner do
           ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
           ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
 
-          expect(Sinatra::CloudCrooner.config.aws_access_key_id).to eq("asdf123")
+          expect(CloudCrooner.config.aws_access_key_id).to eq("asdf123")
         end
 
         it "cannot be set from config" do
-          expect{Sinatra::CloudCrooner.config.aws_access_key_id = "xyz098"}.to raise_error(Sinatra::CloudCrooner::FogSettingError) 
+          expect{CloudCrooner.config.aws_access_key_id = "xyz098"}.to raise_error(CloudCrooner::FogSettingError) 
         end
 
         it "errors if missing from ENV" do
-          expect{Sinatra::CloudCrooner.config.aws_access_key_id}.to raise_error
+          expect{CloudCrooner.config.aws_access_key_id}.to raise_error
         end
       end # aws access key id
 
@@ -222,15 +222,15 @@ describe CloudCrooner do
           ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
           ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
 
-          expect(Sinatra::CloudCrooner.config.aws_secret_access_key).to eq("secret")
+          expect(CloudCrooner.config.aws_secret_access_key).to eq("secret")
         end
 
         it "cannot be set from config" do
-          expect{Sinatra::CloudCrooner.config.aws_secret_access_key = "terces"}.to raise_error(Sinatra::CloudCrooner::FogSettingError) 
+          expect{CloudCrooner.config.aws_secret_access_key = "terces"}.to raise_error(CloudCrooner::FogSettingError) 
         end
 
         it "errors if missing from ENV" do
-          expect{Sinatra::CloudCrooner.config.aws_secret_access_key}.to raise_error
+          expect{CloudCrooner.config.aws_secret_access_key}.to raise_error
         end
 
       end # end aws secret access key
@@ -243,10 +243,10 @@ describe CloudCrooner do
         ENV.stub(:[]).with('AWS_SECRET_ACCESS_KEY').and_return('secret')
         ENV.stub(:has_key?).with('AWS_SECRET_ACCESS_KEY').and_return(true)
 
-        expect(Sinatra::CloudCrooner.config.fog_options[:region]).to eq('eu-west-1')
-        expect(Sinatra::CloudCrooner.config.fog_options[:provider]).to eq('AWS')
-        expect(Sinatra::CloudCrooner.config.fog_options[:aws_access_key_id]).to eq('asdf123')
-        expect(Sinatra::CloudCrooner.config.fog_options[:aws_secret_access_key]).to eq('secret')
+        expect(CloudCrooner.config.fog_options[:region]).to eq('eu-west-1')
+        expect(CloudCrooner.config.fog_options[:provider]).to eq('AWS')
+        expect(CloudCrooner.config.fog_options[:aws_access_key_id]).to eq('asdf123')
+        expect(CloudCrooner.config.fog_options[:aws_secret_access_key]).to eq('secret')
       end # end fog options
 
     end # end fog configuration 

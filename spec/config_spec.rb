@@ -235,6 +235,20 @@ describe CloudCrooner do
 
       end # end aws secret access key
 
+      it 'gathers the fog options from the config' do
+        ENV.stub(:[]).with('AWS_REGION').and_return('eu-west-1')
+        ENV.stub(:has_key?).with('AWS_REGION').and_return(true)
+        ENV.stub(:[]).with('AWS_ACCESS_KEY_ID').and_return('asdf123')
+        ENV.stub(:has_key?).with('AWS_ACCESS_KEY_ID').and_return(true)
+        ENV.stub(:[]).with('AWS_SECRET_ACCESS_KEY').and_return('secret')
+        ENV.stub(:has_key?).with('AWS_SECRET_ACCESS_KEY').and_return(true)
+
+        expect(Sinatra::CloudCrooner.config.fog_options[:region]).to eq('eu-west-1')
+        expect(Sinatra::CloudCrooner.config.fog_options[:provider]).to eq('AWS')
+        expect(Sinatra::CloudCrooner.config.fog_options[:aws_access_key_id]).to eq('asdf123')
+        expect(Sinatra::CloudCrooner.config.fog_options[:aws_secret_access_key]).to eq('secret')
+      end # end fog options
+
     end # end fog configuration 
   end # end describe configuration
 end

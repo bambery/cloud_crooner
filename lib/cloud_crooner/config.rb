@@ -1,3 +1,6 @@
+require 'sinatra/base'
+require 'sprockets'
+
 module Sinatra
   module CloudCrooner
     class FogSettingError < StandardError; end
@@ -71,6 +74,7 @@ module Sinatra
       end
       attr_writer :bucket_name
 
+      # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
       def aws_access_key_id
         if @aws_access_key_id
           return @aws_access_key_id
@@ -80,10 +84,12 @@ module Sinatra
         @aws_access_key_id ||= ENV['AWS_ACCESS_KEY_ID']
       end
 
+      # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
       def aws_access_key_id=(val)
         raise FogSettingError, "AWS_ACCESS_KEY_ID is sensitive data that should not be defined where it can be checked into source control. Please set it in ENV."
       end
 
+      # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
       def aws_secret_access_key
         if @aws_secret_access_key
           return @aws_secret_access_key
@@ -93,6 +99,7 @@ module Sinatra
         @aws_secret_access_key ||= ENV['AWS_SECRET_ACCESS_KEY']
       end
 
+      # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
       def aws_secret_access_key=(val)
         raise FogSettingError, "AWS_SECRET_ACCESS_KEY is sensitive data that should not be defined where it can be checked into source control. Please set it in ENV."
       end

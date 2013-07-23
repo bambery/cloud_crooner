@@ -122,8 +122,6 @@ describe CloudCrooner do
       before(:each) do
         ENV.stub(:has_key?).and_return(false)
         ENV.stub(:[]).and_return(nil)
-                ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
-        ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
 
         custom_env = Sprockets::Environment.new
 
@@ -217,8 +215,26 @@ describe CloudCrooner do
         it "errors if missing from ENV" do
           expect{Sinatra::CloudCrooner.config.aws_access_key_id}.to raise_error
         end
+      end # aws access key id
 
-      end
+      context "AWS secret access key" do
+        it "set from ENV" do
+          ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
+          ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
+
+          expect(Sinatra::CloudCrooner.config.aws_secret_access_key).to eq("secret")
+        end
+
+        it "cannot be set from config" do
+          expect{Sinatra::CloudCrooner.config.aws_secret_access_key = "terces"}.to raise_error(Sinatra::CloudCrooner::FogSettingError) 
+        end
+
+        it "errors if missing from ENV" do
+          expect{Sinatra::CloudCrooner.config.aws_secret_access_key}.to raise_error
+        end
+
+      end # end aws secret access key
+
     end # end fog configuration 
   end # end describe configuration
 end

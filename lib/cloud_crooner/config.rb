@@ -81,7 +81,20 @@ module Sinatra
       end
 
       def aws_access_key_id=(val)
-        raise FogSettingError, "AWS_ACCESS_KEY_ID is sensitive data that should not be placed where it can be checked into source control. Please set it in ENV."
+        raise FogSettingError, "AWS_ACCESS_KEY_ID is sensitive data that should not be defined where it can be checked into source control. Please set it in ENV."
+      end
+
+      def aws_secret_access_key
+        if @aws_secret_access_key
+          return @aws_secret_access_key
+        elsif !ENV.has_key?('AWS_SECRET_ACCESS_KEY')
+          raise FogSettingError, "AWS_SECRET_ACCESS_KEY must be set in ENV"
+        end
+        @aws_secret_access_key ||= ENV['AWS_SECRET_ACCESS_KEY']
+      end
+
+      def aws_secret_access_key=(val)
+        raise FogSettingError, "AWS_SECRET_ACCESS_KEY is sensitive data that should not be defined where it can be checked into source control. Please set it in ENV."
       end
 
     end

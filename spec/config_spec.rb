@@ -133,7 +133,7 @@ describe CloudCrooner do
         end
       end
 
-      context "region" do
+      describe "region" do
         it "assigns from ENV" do
           ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
           ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
@@ -171,7 +171,7 @@ describe CloudCrooner do
         end
       end # end region
 
-      context "bucket name" do
+      describe "bucket name" do
 
         it "assigns from ENV" do
           ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
@@ -200,8 +200,8 @@ describe CloudCrooner do
 
       end # bucket name
 
-      context "AWS access key id" do
-        it "set from ENV" do
+      describe "AWS access key id" do
+        it "is set from ENV" do
           ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
           ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
 
@@ -217,7 +217,7 @@ describe CloudCrooner do
         end
       end # aws access key id
 
-      context "AWS secret access key" do
+      describe "AWS secret access key" do
         it "set from ENV" do
           ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
           ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)

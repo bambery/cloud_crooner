@@ -97,6 +97,10 @@ module Sinatra
         raise FogSettingError, "AWS_SECRET_ACCESS_KEY is sensitive data that should not be defined where it can be checked into source control. Please set it in ENV."
       end
 
+      def fog_options
+        options = { :provider => "AWS", :aws_access_key_id => aws_access_key_id, :aws_secret_access_key => aws_secret_access_key, :region => region }
+      end
+
     end
   end
 end

@@ -17,6 +17,7 @@ module CloudCrooner
     CloudCrooner.configure do |config|
       with_setting(:assets_prefix) { |value| config.prefix = value }
       with_setting(:manifest) { |value| config.local_assets_dir = value.dir}
+      with_setting(:manifest) { |value| config.manifest = value }
     end
   end
 

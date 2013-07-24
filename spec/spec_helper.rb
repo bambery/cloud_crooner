@@ -13,6 +13,17 @@ RSpec.configure do |rconf|
     end
   end
 
+  def stub_env_vars
+    ENV.stub(:[]).and_return(nil)
+
+    ENV.stub(:[]).with('AWS_REGION').and_return('eu-west-1')
+    ENV.stub(:has_key?).with('AWS_REGION').and_return(true)
+    ENV.stub(:[]).with('AWS_ACCESS_KEY_ID').and_return('asdf123')
+    ENV.stub(:has_key?).with('AWS_ACCESS_KEY_ID').and_return(true)
+    ENV.stub(:[]).with('AWS_SECRET_ACCESS_KEY').and_return('secret')
+    ENV.stub(:has_key?).with('AWS_SECRET_ACCESS_KEY').and_return(true)
+  end
+
   def sample_assets(construct)
     lambda { |c|
       c.file('assets/main.js') do |f|

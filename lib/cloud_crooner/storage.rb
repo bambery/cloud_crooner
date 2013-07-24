@@ -17,8 +17,7 @@ module CloudCrooner
     end
 
     def local_assets 
-#DEBUG      @local_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.local_assets_dir, f)} 
-
+      @local_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.prefix, f)} 
     end
 
   end

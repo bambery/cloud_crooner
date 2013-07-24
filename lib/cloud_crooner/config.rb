@@ -45,7 +45,7 @@ module CloudCrooner
     attr_writer :backups_to_keep
 
     # manifest for files to upload, defaults to app's manifest
-    attr_writer :manifest
+    attr_accessor :manifest
 
     # region of your AWS bucket, should be stored in ENV but can be overwritten in config block
     # while not technically required by fog, aws will complain bitterly and has a hit on performance 

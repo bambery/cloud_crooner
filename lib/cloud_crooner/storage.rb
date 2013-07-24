@@ -16,8 +16,8 @@ module CloudCrooner
       @bucket ||= connection.directories.get(self.config.bucket_name, :prefix => self.config.prefix)
     end
 
-    def files_to_upload
-      
+    def local_assets 
+#DEBUG      @local_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.local_assets_dir, f)} 
 
     end
 

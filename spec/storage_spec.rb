@@ -35,7 +35,7 @@ describe CloudCrooner::Storage do
   end # end initialization 
 
   describe 'interacting with files' do
-    it 'should gather the files to upload from the manifest', :meow => true do
+    it 'should gather the files to upload from the manifest' do
       within_construct do |c|
 
         sample_assets(c)
@@ -59,7 +59,41 @@ describe CloudCrooner::Storage do
 
     end # test
 
+    it 'should upload a file to an empty bucket', :luna => true do
+      within_construct do |c|
+
+        stub_env_vars
+        sample_assets(c)
+        # need to specify manifest & public folder so construct will clean them up
+        manifest_file = c.join 'assets/manifest.json'
+
+        @app = Class.new(Sinatra::Base) do
+          set :sprockets, sprockets_env 
+          set :assets_prefix, '/assets'
+          set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
+          register CloudCrooner
+        end
+
+        Fog.mock!
+
+        CloudCrooner.config.manifest.compile('a.css')
+        CloudCrooner.config.bucket_name = 'completely-real-bucket'
+
+        #create the mock bucket
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        @storage.connection.directories.create(
+          :key => @storage.config.bucket_name,
+          :public => true
+        )
+
+        @storage.upload_file(File.join( sprockets_env['a.css'].digest_path))
+
+#        expect(@storage.remote_files).to include(File.join('/assets/', sprockets_env['a.js'].digest_path))
+
+      p "remote files #{@storage.remote_files}"
+    end
+
   end #describe
 end
 
-
+end

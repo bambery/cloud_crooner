@@ -15,9 +15,9 @@ module CloudCrooner
 
   def configure_cloud_crooner(&proc)
     CloudCrooner.configure do |config|
-      with_setting(:assets_prefix) { |value| config.prefix = value }
-      with_setting(:manifest) { |value| config.local_assets_dir = value.dir}
-      with_setting(:manifest) { |value| config.manifest = value }
+      with_setting(:assets_prefix)  { |value| config.prefix = value }
+      with_setting(:manifest)       { |value| config.local_assets_dir = value.dir }
+      with_setting(:manifest)       { |value| config.manifest = value }
     end
   end
 
@@ -48,6 +48,10 @@ module CloudCrooner
     def configure(&proc)
       @config ||= Config.new
       yield @config
+    end
+
+    def log(msg)
+      STDOUT.puts msg
     end
 
   end

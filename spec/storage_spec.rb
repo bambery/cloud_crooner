@@ -133,5 +133,18 @@ describe CloudCrooner::Storage do
         
       end # construct
     end #it 
+
+    it 'does not re-upload existing files' do
+
+    end # it
+
+    it 'deletes remote files not in manifest' do
+
+    end # it
+
+    it 'uploads the specified number of backups' do
+
+    end # it
+
   end # describe
 end

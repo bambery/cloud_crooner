@@ -18,12 +18,16 @@ module CloudCrooner
     end
 
     def local_assets 
-      # assets prepended with prefix for comparison against remot
+      # assets prepended with prefix for comparison against remote
       @local_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.prefix, f)} 
+    end
+    
+    def exists_on_remote?(file)
+      bucket.files.head(file)
     end
 
     def upload_files
-      files_to_upload = local_assets
+      files_to_upload = local_assets.reject { |f| exists_on_remote?(f) }
       files_to_upload.each do |asset|
         upload_file(asset)
       end

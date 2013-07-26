@@ -1,13 +1,11 @@
 require 'spec_helper'
 require 'cloud_crooner/storage'
 
-# each construct only allows one test to be run at a time, hence fairly soaking tests 
+# needs refactoring badly - see shared_context 
 
 describe CloudCrooner::Storage do
   describe 'initialization' do
     before(:each) do
-
-      stub_env_vars
 
       @app = Class.new(Sinatra::Base) do
         set :sprockets, sprockets_env 
@@ -15,12 +13,8 @@ describe CloudCrooner::Storage do
         register CloudCrooner
       end
 
-      CloudCrooner.config.bucket_name = "test-bucket"
-      
-      # mock out fog for testing
-      Fog.mock!
-
       @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+      mock_fog(@storage)
     end # before each
     
     it 'initializes with the config' do
@@ -32,7 +26,7 @@ describe CloudCrooner::Storage do
     end
 
     it 'returns an empty list when grabbing an empty bucket' do
-      expect(@storage.bucket).to be_nil 
+      expect(@storage.bucket.versions.first).to be_nil
     end
   end # end initialization 
 
@@ -54,6 +48,7 @@ describe CloudCrooner::Storage do
         CloudCrooner.config.manifest.compile('a.js', 'b.js')
 
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        mock_fog(@storage)
 
         expect(@storage.local_assets).to include(File.join('/assets/', sprockets_env['a.js'].digest_path)) 
         expect(@storage.local_assets).to include(File.join('/assets/', sprockets_env['b.js'].digest_path)) 
@@ -64,7 +59,6 @@ describe CloudCrooner::Storage do
     it 'should upload a file to an empty bucket', :luna => true do
       within_construct do |c|
 
-        stub_env_vars
         sample_assets(c)
         # need to specify manifest so construct will clean them up
         manifest_file = c.join 'assets/manifest.json'
@@ -78,18 +72,10 @@ describe CloudCrooner::Storage do
           register CloudCrooner
         end
 
-
         CloudCrooner.config.manifest.compile('a.css')
-        CloudCrooner.config.bucket_name = 'completely-real-bucket'
 
-        # mock out aws
-        Fog.mock!
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
-        @storage.connection.directories.create(
-          :key => @storage.config.bucket_name,
-          :public => true
-        )
-
+        mock_fog(@storage)
 
         expect(@storage.remote_assets).to eq([])
 
@@ -103,7 +89,6 @@ describe CloudCrooner::Storage do
     it 'uploads all files from the manifest' do
       within_construct do |c|
 
-        stub_env_vars
         sample_assets(c)
         # need to specify manifest so construct will clean them up
         manifest_file = c.join 'assets/manifest.json'
@@ -117,14 +102,8 @@ describe CloudCrooner::Storage do
           register CloudCrooner
         end
 
-        # mock out aws
-        Fog.mock!
-        CloudCrooner.config.bucket_name = 'completely-real-bucket'
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
-        @storage.connection.directories.create(
-          :key => @storage.config.bucket_name,
-          :public => true
-        )
+        mock_fog(@storage)
         
         CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_assets_dir} + /*"])
 
@@ -135,14 +114,34 @@ describe CloudCrooner::Storage do
     end #it 
 
     it 'does not re-upload existing files' do
+      within_construct do |c|
 
-    end # it
+        sample_assets(c)
+        # need to specify manifest so construct will clean them up
+        manifest_file = c.join 'assets/manifest.json'
 
-    it 'deletes remote files not in manifest' do
+        @app = Class.new(Sinatra::Base) do
+          set :sprockets, sprockets_env 
+          set :assets_prefix, '/assets'
+          set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
+          # point public folder to the temp folder the manifest is in
+          set :public_folder, File.dirname( manifest.dir )
+          register CloudCrooner
+        end
 
-    end # it
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+       mock_fog(@storage)
 
-    it 'uploads the specified number of backups' do
+        p "whats out there? #{@storage.remote_assets}"
+        CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_assets_dir} + /*"])
+
+        @storage.upload_file(File.join(@storage.config.prefix, sprockets_env['a.js'].digest_path))
+        @storage.upload_files
+        expect(@storage.local_equals_remote?).to be_true 
+      
+
+#    it 'deletes remote files not in manifest' do
+      end # construct
 
     end # it
 

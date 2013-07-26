@@ -89,6 +89,18 @@ module CloudCrooner
       bucket.files.each { |f| files << f.key }
       return files
     end
+
+    def delete_remote_asset(f)
+      log "Deleting #{f} from remote"
+      f.destroy
+    end
+
+    def clean_remote
+      to_delete = remote_assets - local_assets
+      to_delete.each do |f|
+        delete_remote_asset(bucket.files.get(f))
+      end
+    end
     
     private 
 

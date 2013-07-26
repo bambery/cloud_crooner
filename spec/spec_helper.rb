@@ -9,7 +9,6 @@ RSpec.configure do |rconf|
 
   def sprockets_env
     @sprockets_env ||= Sprockets::Environment.new.tap do |env|
-#DEBUG      env.append_path 'assets' if File.directory?('assets')
       env.append_path 'assets'
     end
   end
@@ -23,17 +22,6 @@ RSpec.configure do |rconf|
     ENV.stub(:has_key?).with('AWS_ACCESS_KEY_ID').and_return(true)
     ENV.stub(:[]).with('AWS_SECRET_ACCESS_KEY').and_return('secret')
     ENV.stub(:has_key?).with('AWS_SECRET_ACCESS_KEY').and_return(true)
-  end
-
-  def mock_fog(storage)
-    stub_env_vars
-    Fog.mock!
-    storage.config.bucket_name = SecureRandom.hex
-    storage.bucket.destroy if storage.bucket
-    storage.connection.directories.create(
-      :key => storage.config.bucket_name,
-      :public => true
-    )
   end
 
   def sample_assets(construct)

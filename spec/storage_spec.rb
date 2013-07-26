@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'cloud_crooner/storage'
 
+# each construct only allows one test to be run at a time, hence fairly soaking tests 
+
 describe CloudCrooner::Storage do
   describe 'initialization' do
     before(:each) do
@@ -57,43 +59,79 @@ describe CloudCrooner::Storage do
         expect(@storage.local_assets).to include(File.join('/assets/', sprockets_env['b.js'].digest_path)) 
       end #construct
 
-    end # test
+    end #it 
 
     it 'should upload a file to an empty bucket', :luna => true do
       within_construct do |c|
 
         stub_env_vars
         sample_assets(c)
-        # need to specify manifest & public folder so construct will clean them up
+        # need to specify manifest so construct will clean them up
         manifest_file = c.join 'assets/manifest.json'
 
         @app = Class.new(Sinatra::Base) do
           set :sprockets, sprockets_env 
           set :assets_prefix, '/assets'
           set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
+          # point public folder to the temp folder the manifest is in
+          set :public_folder, File.dirname( manifest.dir )
           register CloudCrooner
         end
 
-        Fog.mock!
 
         CloudCrooner.config.manifest.compile('a.css')
         CloudCrooner.config.bucket_name = 'completely-real-bucket'
 
-        #create the mock bucket
+        # mock out aws
+        Fog.mock!
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
         @storage.connection.directories.create(
           :key => @storage.config.bucket_name,
           :public => true
         )
 
-        @storage.upload_file(File.join( sprockets_env['a.css'].digest_path))
 
-#        expect(@storage.remote_files).to include(File.join('/assets/', sprockets_env['a.js'].digest_path))
+        expect(@storage.remote_assets).to eq([])
 
-      p "remote files #{@storage.remote_files}"
-    end
+        @storage.upload_file(File.join( '/assets', sprockets_env['a.css'].digest_path))
 
-  end #describe
-end
+        expect(@storage.remote_assets).to include(File.join('/assets/', sprockets_env['a.css'].digest_path))
+      end # construct
 
+    end # it
+
+    it 'uploads all files from the manifest' do
+      within_construct do |c|
+
+        stub_env_vars
+        sample_assets(c)
+        # need to specify manifest so construct will clean them up
+        manifest_file = c.join 'assets/manifest.json'
+
+        @app = Class.new(Sinatra::Base) do
+          set :sprockets, sprockets_env 
+          set :assets_prefix, '/assets'
+          set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
+          # point public folder to the temp folder the manifest is in
+          set :public_folder, File.dirname( manifest.dir )
+          register CloudCrooner
+        end
+
+        # mock out aws
+        Fog.mock!
+        CloudCrooner.config.bucket_name = 'completely-real-bucket'
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        @storage.connection.directories.create(
+          :key => @storage.config.bucket_name,
+          :public => true
+        )
+        
+        CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_assets_dir} + /*"])
+
+        @storage.upload_files
+        expect(@storage.local_equals_remote?).to be_true 
+        
+      end # construct
+    end #it 
+  end # describe
 end

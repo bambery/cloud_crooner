@@ -18,6 +18,7 @@ module CloudCrooner
       with_setting(:assets_prefix)  { |value| config.prefix = value }
       with_setting(:manifest)       { |value| config.local_assets_dir = value.dir }
       with_setting(:manifest)       { |value| config.manifest = value }
+      with_setting(:public_folder) { |value| config.public_path = value }
     end
   end
 

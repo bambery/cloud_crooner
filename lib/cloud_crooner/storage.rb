@@ -18,11 +18,24 @@ module CloudCrooner
     end
 
     def local_assets 
+      # assets prepended with prefix for comparison against remot
       @local_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.prefix, f)} 
     end
 
     def upload_files
-      #upload all files in manifest
+      files_to_upload = local_assets
+      files_to_upload.each do |asset|
+        upload_file(asset)
+      end
+    end
+
+    def local_equals_remote? 
+      frequency(local_assets) == frequency(remote_assets)
+    end
+
+    def frequency(arr)
+      # http://stackoverflow.com/questions/9095017/comparing-two-arrays-in-ruby
+      p = Hash.new(0); arr.each{ |v| p[v] += 1 }; p
     end
 
     def log(msg)
@@ -30,11 +43,11 @@ module CloudCrooner
     end
 
     def upload_file(f)
-      full_file_path = File.join(self.config.local_assets_dir, f)
+      full_file_path = File.join(self.config.public_path, f)
       one_year = 31557600
       mime = Rack::Mime.mime_type(File.extname(f)) 
       file = {
-        :key => File.join(self.config.prefix, f),
+        :key => f,
         :public => true,
         :content_type => mime,
         :cache_control => "public, max-age=#{one_year}",
@@ -68,11 +81,10 @@ module CloudCrooner
       end
         # put in reduced redundancy option here later if desired
 
-        p "MY OPTIONS! #{file}"
         file =  bucket.files.create( file )
     end
 
-    def remote_files
+    def remote_assets
       files = []
       bucket.files.each { |f| files << f.key }
       return files

@@ -44,6 +44,9 @@ module CloudCrooner
     end
     attr_writer :backups_to_keep
 
+    # defaults to app's public_folder 
+    attr_accessor :public_path
+
     # manifest for files to upload, defaults to app's manifest
     attr_accessor :manifest
 

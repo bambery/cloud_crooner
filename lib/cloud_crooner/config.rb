@@ -27,16 +27,16 @@ module CloudCrooner
 
     # Path from app root of static assets as determined by the manifest. 
     # This is set automatically by configure_cloud_crooner and cannot be modified.
-    def local_assets_dir=(val)
-      @local_assets_dir ||= val
+    def local_compiled_assets_dir=(val)
+      @local_compiled_assets_dir ||= val
     end
-    attr_reader :local_assets_dir
+    attr_reader :local_compiled_assets_dir
 
     # whether to delete remote assets which are no longer in the manifest. Default true
-    def clean_up_remote 
+    def clean_up_remote? 
       @clean_up_remote.nil? ? true : @clean_up_remote 
     end
-    attr_writer :clean_up_remote 
+    attr_writer :clean_up_remote
 
     # Used with clean_up_remote: how many backups to keep for each asset in the manifest. Does not apply to assest that have been completely deleted from the file system. 
     def backups_to_keep

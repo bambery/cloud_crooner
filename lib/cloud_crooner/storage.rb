@@ -17,9 +17,9 @@ module CloudCrooner
       @bucket ||= connection.directories.get(self.config.bucket_name, :prefix => self.config.prefix)
     end
 
-    def local_assets 
-      # assets prepended with prefix for comparison against remote
-      @local_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.prefix, f)} 
+    def local_compiled_assets 
+      # compiled assets prepended with prefix for comparison against remote
+      @local_compiled_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.prefix, f)} 
     end
     
     def exists_on_remote?(file)
@@ -27,7 +27,7 @@ module CloudCrooner
     end
 
     def upload_files
-      files_to_upload = local_assets.reject { |f| exists_on_remote?(f) }
+      files_to_upload = local_compiled_assets.reject { |f| exists_on_remote?(f) }
       files_to_upload.each do |asset|
         upload_file(asset)
       end
@@ -35,7 +35,7 @@ module CloudCrooner
 
     def local_equals_remote? 
       # the remote files are not guaranteed to be ordered
-      frequency(local_assets) == frequency(remote_assets)
+      frequency(local_compiled_assets) == frequency(remote_assets)
     end
 
     def log(msg)
@@ -43,6 +43,7 @@ module CloudCrooner
     end
 
     def upload_file(f)
+      # grabs the compiled asset from public_path
       full_file_path = File.join(self.config.public_path, f)
       one_year = 31557600
       mime = Rack::Mime.mime_type(File.extname(f)) 
@@ -96,7 +97,7 @@ module CloudCrooner
     end
 
     def clean_remote
-      to_delete = remote_assets - local_assets
+      to_delete = remote_assets - local_compiled_assets
       to_delete.each do |f|
         delete_remote_asset(bucket.files.get(f))
       end

@@ -27,7 +27,7 @@ describe CloudCrooner do
         end
 
         it "sets location of static assets to parent dir of manifest" do
-            expect(CloudCrooner.config.local_assets_dir).to eq(File.join(@app.settings.root, 'public/static'))
+            expect(CloudCrooner.config.local_compiled_assets_dir).to eq(File.join(@app.settings.root, 'public/static'))
         end
       end # end with defaults without manifest
 
@@ -50,7 +50,7 @@ describe CloudCrooner do
         end
 
         it "sets the location of static assets to the parent directory of the manifest", :meow =>true  do
-          expect(CloudCrooner.config.local_assets_dir).to eq(File.dirname(@app.manifest.path))
+          expect(CloudCrooner.config.local_compiled_assets_dir).to eq(File.dirname(@app.manifest.path))
         end
       end # end context with defaults with manifest 
 
@@ -74,9 +74,9 @@ describe CloudCrooner do
         end
 
         it "does not use a custom local assets directory" do
-          CloudCrooner.config.local_assets_dir = "/chocobo"
+          CloudCrooner.config.local_compiled_assets_dir = "/chocobo"
 
-          expect(CloudCrooner.config.local_assets_dir).to eq(File.dirname(@app.manifest.path))
+          expect(CloudCrooner.config.local_compiled_assets_dir).to eq(File.dirname(@app.manifest.path))
         end
 
         end # end context custom settings 
@@ -97,7 +97,7 @@ describe CloudCrooner do
       end
 
       it "defaults to true" do
-        expect(CloudCrooner.config.clean_up_remote).to be_true
+        expect(CloudCrooner.config.clean_up_remote?).to be_true
       end
 
       it "defaults to 2 backups" do
@@ -107,7 +107,7 @@ describe CloudCrooner do
       it "can be disabled" do
         CloudCrooner.configure{|config| config.clean_up_remote= false}
       
-        expect(CloudCrooner.config.clean_up_remote).to be_false 
+        expect(CloudCrooner.config.clean_up_remote?).to be_false 
       end
     
       it "sets the number of backups to keep" do

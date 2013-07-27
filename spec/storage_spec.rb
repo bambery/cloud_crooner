@@ -3,15 +3,15 @@ require 'cloud_crooner/storage'
 
 def mock_app(c)
     sample_assets(c)
-    # need to specify manifest so construct will clean them up
-    manifest_file = c.join 'assets/manifest.json'
+    # need to specify manifest so construct will clean it up
+    public_folder = c.directory 'public'
+    manifest_file = c.file 'public/assets/manifest.json'
 
       app = Class.new(Sinatra::Base) do
         set :sprockets, sprockets_env 
         set :assets_prefix, '/assets'
         set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
-        # point public folder to the temp folder the manifest is in
-        set :public_folder, File.dirname( manifest.dir )
+        set :public_folder, public_folder
         register CloudCrooner
       end
   end
@@ -54,15 +54,15 @@ describe CloudCrooner::Storage do
   end # end initialization 
 
   describe 'interacting with files' do
-    it 'should gather the files to upload from the manifest' do
+    it 'should gather the precompiled files to upload from the manifest' do
       within_construct do |c|
         mock_app(c)
         CloudCrooner.config.manifest.compile('a.js', 'b.js')
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
         mock_fog(@storage)
 
-        expect(@storage.local_assets).to include(File.join('/assets/', sprockets_env['a.js'].digest_path)) 
-        expect(@storage.local_assets).to include(File.join('/assets/', sprockets_env['b.js'].digest_path)) 
+        expect(@storage.local_compiled_assets).to include(File.join('/assets/', sprockets_env['a.js'].digest_path)) 
+        expect(@storage.local_compiled_assets).to include(File.join('/assets/', sprockets_env['b.js'].digest_path)) 
       end #construct
 
     end #it 
@@ -83,29 +83,30 @@ describe CloudCrooner::Storage do
       end # construct
     end # it
 
-    it 'uploads all files from the manifest' do
+    it 'uploads all files from the manifest', :meep => true do
       within_construct do |c|
 
         mock_app(c)
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
         mock_fog(@storage)
-        
-        CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_assets_dir} + /*"])
+p       Dir["#{@storage.config.prefix} + /*" ]
+        #CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_compiled_assets_dir} + /*"])
 
-        @storage.upload_files
-        expect(@storage.local_equals_remote?).to be_true 
-        
+#        @storage.upload_files
+#        expect(@storage.local_equals_remote?).to be_true 
+#        
       end # construct
     end #it 
 
     it 'does not re-upload existing files' do
+      # this could be tested better, maybe by checking log messages sent
       within_construct do |c|
 
         mock_app(c)
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
         mock_fog(@storage)
 
-        CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_assets_dir} + /*"])
+        CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_compiled_assets_dir} + /*"])
 
         @storage.upload_file(File.join(@storage.config.prefix, sprockets_env['a.js'].digest_path))
         @storage.upload_files
@@ -113,14 +114,14 @@ describe CloudCrooner::Storage do
       end # construct
     end # it
 
-    it 'deletes remote files not in manifest', :meow => true do
+    it 'deletes remote files not in manifest' do
       within_construct do |c|
 
         mock_app(c)
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
         mock_fog(@storage)
 
-        CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_assets_dir} + /*"])
+        CloudCrooner.config.manifest.compile(Dir["#{@storage.config.local_compiled_assets_dir} + /*"])
 
         @storage.bucket.files.create(
           :key => '/assets/fake-file.html',
@@ -131,6 +132,44 @@ describe CloudCrooner::Storage do
         expect(@storage.remote_assets).to include('/assets/fake-file.html')
         @storage.clean_remote 
         expect(@storage.remote_assets).to_not include('/assets/fake-file.html')
+
+      end #construct
+    end # it
+
+    it 'uploads backups', :woof => true do
+      within_construct do |c|
+
+        @app = mock_app(c)
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        mock_fog(@storage)
+
+        CloudCrooner.config.manifest.compile('a.css')
+
+        p "the manifest is: #{CloudCrooner.config.manifest.assets}"
+        
+        p sprockets_env['a.css'].to_s
+
+        open(File.join(@storage.config,('a.css')), 'a') do |f| 
+          f << "h1 {"
+          f << "color: blue;"
+          f << "}"
+        end
+
+        p sprockets_env['a.css'].to_s
+
+        CloudCrooner.config.manifest.compile('a.css')
+
+        p "the manifest is: #{CloudCrooner.config.manifest.assets}"
+
+#        @storage.bucket.files.create(
+#          :key => '/assets/fake-file.html',
+#          :body => 'meowmeow',
+#          :public => true
+#        )
+        
+#        expect(@storage.remote_assets).to include('/assets/fake-file.html')
+#        @storage.clean_remote 
+#        expect(@storage.remote_assets).to_not include('/assets/fake-file.html')
 
       end #construct
     end # it

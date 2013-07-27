@@ -19,7 +19,7 @@ module CloudCrooner
 
     def local_compiled_assets 
       # compiled assets prepended with prefix for comparison against remote
-      @local_compiled_assets ||= self.config.manifest.assets.values.map {|f| File.join(self.config.prefix, f)} 
+      @local_compiled_assets ||= self.config.manifest.files.keys.map {|f| File.join(self.config.prefix, f)} 
     end
     
     def exists_on_remote?(file)

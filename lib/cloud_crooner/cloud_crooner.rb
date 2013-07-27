@@ -12,30 +12,25 @@ module CloudCrooner
     end
   end
 
-
-  def configure_cloud_crooner(&proc)
-    CloudCrooner.configure do |config|
-      with_setting(:assets_prefix)  { |value| config.prefix = value }
-      with_setting(:manifest)       { |value| config.local_compiled_assets_dir = value.dir }
-      with_setting(:manifest)       { |value| config.manifest = value }
-      with_setting(:public_folder) { |value| config.public_path = value }
-    end
-  end
-
-  def with_setting(name, &proc)
-    raise MissingRequiredSetting.new(name) unless settings.respond_to?(name)
-
-    val = settings.__send__(name)
-    yield val unless val.nil? 
-  end
-
   class << self
     def registered(app)
       # create a manifest if there isn't one
       app.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless app.settings.respond_to?(:manifest)
       @config = Config.new
-      app.configure_cloud_crooner
+      # these settings depend on the app
+      with_setting(app, :assets_prefix)  { |value| config.prefix = value }
+      with_setting(app, :manifest)       { |value| config.local_compiled_assets_dir = value.dir }
+      with_setting(app, :manifest)       { |value| config.manifest = value }
+      with_setting(app, :public_folder) { |value| config.public_path = value }
     end
+
+    def with_setting(app, name, &proc)
+      raise MissingRequiredSetting.new(name) unless app.settings.respond_to?(name)
+
+      val = app.settings.__send__(name)
+      yield val unless val.nil? 
+    end
+
 
     def config=(data)
       @config = data
@@ -52,7 +47,7 @@ module CloudCrooner
     end
 
     def log(msg)
-      STDOUT.puts msg
+      $stdout.puts msg
     end
 
   end

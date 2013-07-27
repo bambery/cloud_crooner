@@ -31,7 +31,6 @@ module CloudCrooner
       yield val unless val.nil? 
     end
 
-
     def config=(data)
       @config = data
     end

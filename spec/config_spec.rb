@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe CloudCrooner do
   describe 'configuration' do
-    context 'using settings from the environment' do
-      context 'with defaults without manifest' do
+    context 'auto settings from the environment' do
+      context 'without manifest' do
         before(:each) do
           custom_env = Sprockets::Environment.new
 
@@ -31,7 +31,7 @@ describe CloudCrooner do
         end
       end # end with defaults without manifest
 
-      context 'with defaults with manifest' do
+      context 'with manifest' do
         before(:each) do
           custom_env = Sprockets::Environment.new
 
@@ -49,35 +49,10 @@ describe CloudCrooner do
           expect(@app.manifest.dir).to eq(File.join(@app.root,'foo/bar'))
         end
 
-        it "sets the location of static assets to the parent directory of the manifest", :meow =>true  do
+        it "sets the location of static assets to the parent directory of the manifest" do
           expect(CloudCrooner.config.local_compiled_assets_dir).to eq(File.dirname(@app.manifest.path))
         end
       end # end context with defaults with manifest 
-
-      context "with custom settings" do
-        before(:each) do
-          custom_env = Sprockets::Environment.new
-
-          @app = Class.new(Sinatra::Base) do
-            set :sprockets, custom_env
-            set :assets_prefix, '/static'
-            set :manifest, Proc.new { Sprockets::Manifest.new(sprockets, File.join(root, 'foo/bar')) }
-
-            register CloudCrooner
-          end
-        end
-
-        it "uses the custom prefix" do
-          CloudCrooner.config.prefix = "/moogles"
-
-          expect(CloudCrooner.config.prefix).to eq('/moogles')
-        end
-
-        it 'definitely should have some more tests here' do
-        end
-
-      end # end context custom settings 
-
     end # end context using settings from the environment 
 
     describe "cleaning up remote assets" do
@@ -131,7 +106,7 @@ describe CloudCrooner do
       end
 
       describe "region" do
-        it "assigns from ENV" do
+        it "defaults to checking ENV['AWS_REGION']" do
           ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
           ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
 
@@ -198,35 +173,55 @@ describe CloudCrooner do
       end # bucket name
 
       describe "AWS access key id" do
-        it "is set from ENV" do
+        it "is set from ENV['AWS_ACCESS_KEY_ID'] by default" do
           ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
           ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
 
           expect(CloudCrooner.config.aws_access_key_id).to eq("asdf123")
         end
 
-        it "cannot be set from config" do
-          expect{CloudCrooner.config.aws_access_key_id = "xyz098"}.to raise_error(CloudCrooner::FogSettingError) 
+        it "is set in config and overwrites ENV" do
+          ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
+          ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
+          CloudCrooner.config.aws_access_key_id = "lkjh0987"
+
+          expect(CloudCrooner.config.aws_access_key_id).to eq("lkjh0987")
         end
 
-        it "errors if missing from ENV" do
+        it "allows access key id to be set in config if none in env" do
+          CloudCrooner.config.aws_access_key_id = "lkjh0987"
+
+          expect(CloudCrooner.config.aws_access_key_id).to eq("lkjh0987")
+        end
+
+        it "errors if unset" do
           expect{CloudCrooner.config.aws_access_key_id}.to raise_error
         end
       end # aws access key id
 
       describe "AWS secret access key" do
-        it "set from ENV" do
+        it "set from ENV['AWS_SECRET_ACCESS_KEY'] by default" do
           ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
           ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
 
           expect(CloudCrooner.config.aws_secret_access_key).to eq("secret")
         end
 
-        it "cannot be set from config" do
-          expect{CloudCrooner.config.aws_secret_access_key = "terces"}.to raise_error(CloudCrooner::FogSettingError) 
+        it "is set in config and overwrites ENV" do
+          ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
+          ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
+          CloudCrooner.config.aws_secret_access_key = "terces"
+
+          expect(CloudCrooner.config.aws_secret_access_key).to eq("terces")
         end
 
-        it "errors if missing from ENV" do
+        it "allows secret access key to be set in config when ENV is empty" do
+          CloudCrooner.config.aws_secret_access_key = "terces"
+
+          expect(CloudCrooner.config.aws_secret_access_key).to eq("terces")
+        end
+
+        it "errors if unset" do
           expect{CloudCrooner.config.aws_secret_access_key}.to raise_error
         end
 

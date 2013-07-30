@@ -73,13 +73,10 @@ describe CloudCrooner do
           expect(CloudCrooner.config.prefix).to eq('/moogles')
         end
 
-        it "does not use a custom local assets directory" do
-          CloudCrooner.config.local_compiled_assets_dir = "/chocobo"
-
-          expect(CloudCrooner.config.local_compiled_assets_dir).to eq(File.dirname(@app.manifest.path))
+        it 'definitely should have some more tests here' do
         end
 
-        end # end context custom settings 
+      end # end context custom settings 
 
     end # end context using settings from the environment 
 

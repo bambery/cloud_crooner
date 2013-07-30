@@ -17,8 +17,9 @@ module CloudCrooner
       sa-east-1
     )
 
-    # (virtual) subdirectory for remote assets, ex "assets/".
+    # (virtual) subdirectory for remote assets, ex "/assets".
     # Default is app's asset_prefix used by Sprockets.
+    # set in CloudCrooner::registered 
     def prefix=(val)
       val.prepend("/") unless val.start_with?("/")
       @prefix = val.chomp("/") 
@@ -26,25 +27,24 @@ module CloudCrooner
     attr_reader :prefix
 
     # Path from app root of static assets as determined by the manifest. 
-    # This is set automatically by configure_cloud_crooner and cannot be modified.
-    def local_compiled_assets_dir=(val)
-      @local_compiled_assets_dir ||= val
+    def local_compiled_assets_dir
+      manifest.dir
     end
-    attr_reader :local_compiled_assets_dir
 
-    # whether to delete remote assets which are no longer in the manifest. Default true
+    # whether to delete remote assets (and backups) which are no longer in the manifest. Default true
     def clean_up_remote? 
       @clean_up_remote.nil? ? true : @clean_up_remote 
     end
     attr_writer :clean_up_remote
 
-    # Used with clean_up_remote: how many backups to keep for each asset in the manifest. Does not apply to assest that have been completely deleted from the file system. 
+    # Used with clean_up_remote: how many backups to keep for each asset in the manifest. Does not apply to assets that have been completely deleted from the file system. 
     def backups_to_keep
       @backups_to_keep ||= 2
     end
     attr_writer :backups_to_keep
 
     # defaults to app's public_folder 
+    # set in CloudCrooner::registered 
     attr_accessor :public_path
 
     # manifest for files to upload, defaults to app's manifest

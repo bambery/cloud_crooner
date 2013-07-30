@@ -19,7 +19,6 @@ module CloudCrooner
       @config = Config.new
       # these settings depend on the app
       with_setting(app, :assets_prefix)  { |value| config.prefix = value }
-      with_setting(app, :manifest)       { |value| config.local_compiled_assets_dir = value.dir }
       with_setting(app, :manifest)       { |value| config.manifest = value }
       with_setting(app, :public_folder) { |value| config.public_path = value }
     end

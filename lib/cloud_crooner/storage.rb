@@ -19,7 +19,7 @@ module CloudCrooner
 
     def local_compiled_assets 
       # compiled assets prepended with prefix for comparison against remote
-      @local_compiled_assets ||= self.config.manifest.files.keys.map {|f| File.join(self.config.prefix, f)} 
+      @local_compiled_assets ||= self.config.manifest.files.keys.map {|f| File.join(self.config.sprockets_prefix, f)} 
     end
     
     def exists_on_remote?(file)
@@ -106,6 +106,7 @@ module CloudCrooner
     private 
 
     def frequency(arr)
+      # FIXME needs to remove prefixes for comparison
       # http://stackoverflow.com/questions/9095017/comparing-two-arrays-in-ruby
       p = Hash.new(0); arr.each{ |v| p[v] += 1 }; p
     end

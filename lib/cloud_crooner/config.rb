@@ -17,14 +17,23 @@ module CloudCrooner
       sa-east-1
     )
 
-    # (virtual) subdirectory for remote assets, ex "/assets".
-    # Default is app's asset_prefix used by Sprockets.
+    # app's asset_prefix used by sprockets
     # set in CloudCrooner::registered 
+    def sprockets_prefix=(val)
+      @sprockets_prefix ||= val
+    end
+    attr_reader :sprockets_prefix
+
+    # (virtual) subdirectory for remote assets, ex "/assets".
+    # Default is sprockets_prefix 
+    def prefix
+      @prefix ||= sprockets_prefix
+    end
+
     def prefix=(val)
       val.prepend("/") unless val.start_with?("/")
       @prefix = val.chomp("/") 
     end
-    attr_reader :prefix
 
     # Path from app root of static assets as determined by the manifest. 
     def local_compiled_assets_dir

@@ -18,7 +18,7 @@ module CloudCrooner
       app.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless app.settings.respond_to?(:manifest)
       @config = Config.new
       # these settings depend on the app
-      with_setting(app, :assets_prefix)  { |value| config.prefix = value }
+      with_setting(app, :assets_prefix)  { |value| config.sprockets_prefix = value }
       with_setting(app, :manifest)       { |value| config.manifest = value }
       with_setting(app, :public_folder) { |value| config.public_path = value }
     end

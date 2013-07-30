@@ -71,7 +71,7 @@ describe CloudCrooner::Storage do
 
     end #it 
 
-    it 'should upload a file to an empty bucket', :luna => true do
+    it 'should upload a file to an empty bucket' do
       within_construct do |c|
 
         mock_app(c)
@@ -100,6 +100,24 @@ describe CloudCrooner::Storage do
         
       end # construct
     end #it 
+
+    it 'uploads all files from the manifest with a custom prefix' do
+      within_construct do |c|
+
+        mock_app(c)
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+
+        @storage.config.prefix = "/moogles"
+
+        mock_fog(@storage)
+        CloudCrooner.config.manifest.compile(Dir[uncompiled_assets_dir(c) + "/*"])
+        CloudCrooner.config.manifest.files.count.should eq(6)
+        @storage.upload_files
+        expect(@storage.local_equals_remote?).to be_true 
+        
+      end # construct
+    end #it 
+
 
     it 'does not re-upload existing files' do
       # this could be tested better, maybe by checking log messages sent

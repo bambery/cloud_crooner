@@ -41,7 +41,7 @@ In app.rb in your configure block, create an instance of Sprockets. Place your a
     set :sprockets, Sprockets::Environment.new(root) { | env | env.logger = Logger.new($stdout) }
     set :assets_prefix, '/assets'
 
-What this does: Sprockets will grab any route under www.yourapp.com/assets and search its load path for the file. So let's tell it to add some stylesheets to the load path:
+What this does: Sprockets will grab any route under www.yourapp.com/assets and search its (Sprockets's) load path for the file. So let's tell it to add some stylesheets to the load path:
 
     configure :development
       sprockets.append_path File.join(root, assets_prefix, 'stylesheets')
@@ -88,11 +88,46 @@ Sprockets-helpers will grab your Sprockets settings to configure itself, but you
 
 So let's actually create some static assets. Sprockets comes with a rake task macro which we will utilize. Create a Rakefile and put this in it:
 
-    blah blsh
+    require './app' # your app file
+    require 'sprockets'
+    require 'rake/sprocketstask'
+
+    Rake::SprocketsTask.new do |t|
+      t.environment = App.sprockets
+      t.manifest = App.manifest
+      t.assets = 'main.css'  
+    end
+
+t.assets is an array of the assets you want compiled. You should reference the assets from their sprockets's load paths.
+
+You now have three rake tasks at your disposal for dealing with assets:
+
++ `rake assets`: This will compile your assets and output them in `app_root/public_folder/assets_prefix`. It will also:
+  1. create the manifest if it does not exist
+  2. recompile assets that have changed with a new digest
+  3. update the manifest to point an asset to its most recent digest
+  4. update the manifest with new assets
+
+It will not delete remove old assets from the manifest. It will also not honor the number of backups you have requested for an asset.
+
++ `rake clean_assets`: This will
+  1. remove from the manifest any additional backups. If you requested to keep 2 and you now have 3, the oldest digest path will be removed from the manifest
+  2. remove from the file system any additional backups. If you requested 2 and now have 3, Sprockets will delete from the local file system the oldest compiled digest file.
++ `rake clobber_assets`: This will delete the compiled assets folder and all of its contents.
+
+Exciting! But if you are using CloudCrooner, you won't need to directly call any of these rake tasks, but knowledge is power. 
+
+#### Caveats
+
+This is not a full on guide to Sprockets (if such a thing exists, hook me up), but it should get you started.
+
+One thing to note: Specifically for Sass files, do not use the Sprockets directives - use @include. See here for more details:
+
+[Structure Your Sass Files with @import](http://pivotallabs.com/structure-your-sass-files-with-import/)
 
 ### Hooking up with your Amazon S3 Account
 
-After you have created an S3 account, [you will will be provided with an "access key id" and a "secret access key"](https://portal.aws.amazon.com/gp/aws/securityCredentials). You will also need your bucket name and the bucket's region. The region can be found by going to the s3 console and checking the end of the URL: it will look something like us-west-1. Cloud Crooner will look for your AWS credentials in your ENV by default. _Do not put your credentials anywhere they can be checked into source control._ I would suggest loading them into the env in your login scripts. The env keys that will be checked by default are:
+After you have created an S3 account, [you will will be provided with an "access key id" and a "secret access key"](https://portal.aws.amazon.com/gp/aws/securityCredentials). You will also need your bucket name and the bucket's region. The region can be found by going to the s3 console and checking the end of the URL: it will look something like us-west-1. Cloud Crooner will look for your AWS credentials in your ENV by default. _Do not put your credentials anywhere they can be checked into source control._ I would suggest loading them into the env in with your bash login scripts. The env keys that will be checked by default are:
 
     ENV["AWS_SECRET_ACCESS_KEY"]  # the secret access key given by Amazon
     ENV["AWS_ACCESS_KEY_ID"]      # access key id given by Amazon 
@@ -107,7 +142,6 @@ You may also set these in the Cloud Crooner config block, but please do not dire
       config.bucket_name = "super-cool-bucket"
       config.aws_region = "eu-west-1"
     end
-
 
 ## Contributing
 

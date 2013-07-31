@@ -23,7 +23,7 @@ describe CloudCrooner do
          end
 
         it "sets the prefix to the app's asset_prefix" do
-          expect(CloudCrooner.config.prefix).to eq('/static')
+          expect(CloudCrooner.config.prefix).to eq('static')
         end
 
         it "sets location of static assets to parent dir of manifest" do

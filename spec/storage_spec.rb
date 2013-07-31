@@ -66,8 +66,8 @@ describe CloudCrooner::Storage do
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
         mock_fog(@storage)
 
-        expect(@storage.local_compiled_assets).to include(File.join('/assets/', sprockets_env['a.js'].digest_path)) 
-        expect(@storage.local_compiled_assets).to include(File.join('/assets/', sprockets_env['b.js'].digest_path)) 
+        expect(@storage.local_compiled_assets).to include(File.join('assets/', sprockets_env['a.js'].digest_path)) 
+        expect(@storage.local_compiled_assets).to include(File.join('assets/', sprockets_env['b.js'].digest_path)) 
       end #construct
 
     end #it 
@@ -82,9 +82,9 @@ describe CloudCrooner::Storage do
 
         expect(@storage.remote_assets).to eq([])
 
-        @storage.upload_file(File.join( '/assets', sprockets_env['a.css'].digest_path))
+        @storage.upload_file(File.join( 'assets', sprockets_env['a.css'].digest_path))
 
-        expect(@storage.remote_assets).to include(File.join('/assets/', sprockets_env['a.css'].digest_path))
+        expect(@storage.remote_assets).to include(File.join('assets/', sprockets_env['a.css'].digest_path))
       end # construct
     end # it
 
@@ -129,16 +129,16 @@ describe CloudCrooner::Storage do
         CloudCrooner.config.manifest.compile(Dir[uncompiled_assets_dir(c) + "/*"])
         CloudCrooner.config.manifest.files.count.should eq(6)
 
-        # upload a non-manifest file
+        # upload a non-manifest tracked file
         @storage.bucket.files.create(
-          :key => '/assets/fake-file.html',
+          :key => 'assets/fake-file.html',
           :body => 'meowmeow',
           :public => true
         )
         
-        expect(@storage.remote_assets).to include('/assets/fake-file.html')
+        expect(@storage.remote_assets).to include('assets/fake-file.html')
         @storage.clean_remote 
-        expect(@storage.remote_assets).to_not include('/assets/fake-file.html')
+        expect(@storage.remote_assets).to_not include('assets/fake-file.html')
 
       end #construct
     end # it

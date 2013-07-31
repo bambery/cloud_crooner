@@ -21,7 +21,8 @@ module CloudCrooner
     # Default is app's asset_prefix used by Sprockets and can't be changed.
     # set in CloudCrooner::registered 
     def prefix=(val)
-      @prefix ||= val 
+      # strip leading slash
+      @prefix ||= val.sub(/^\//, '')  
     end
     attr_reader :prefix
 

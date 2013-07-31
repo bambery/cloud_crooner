@@ -52,9 +52,10 @@ describe CloudCrooner::Storage do
       expect(@storage.connection.directories).to be_an_instance_of(Fog::Storage::AWS::Directories) 
     end
 
-    it 'returns an empty list when grabbing an empty bucket' do
-      expect(@storage.bucket.versions.first).to be_nil
-    end
+    #    this tests nothing
+#    it 'returns an empty list when grabbing an empty bucket' do
+#      expect(@storage.bucket.versions.first).to be_nil
+#    end
   end # end initialization 
 
   describe 'interacting with files' do
@@ -71,7 +72,7 @@ describe CloudCrooner::Storage do
 
     end #it 
 
-    it 'should upload a file to an empty bucket', :luna => true do
+    it 'should upload a file to an empty bucket' do
       within_construct do |c|
 
         mock_app(c)

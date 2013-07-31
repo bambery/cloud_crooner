@@ -48,6 +48,18 @@ module CloudCrooner
       $stdout.puts msg
     end
 
+    def storage
+      @storage ||= Storage.new(self.config)
+    end
+
+    def sync
+      self.storage.upload_files
+
+      if self.config.clean_up_remote?
+        self.storage.clean_remote
+      end
+    end
+
   end
 end
 

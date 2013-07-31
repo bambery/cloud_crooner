@@ -108,7 +108,7 @@ You now have three rake tasks at your disposal for dealing with assets:
   3. update the manifest to point an asset to its most recent digest
   4. update the manifest with new assets
 
-It will not delete remove old assets from the manifest. It will also not honor the number of backups you have requested for an asset.
+It will not remove old assets from the manifest. It will also not honor the number of backups you have requested for an asset.
 
 + `rake clean_assets`: This will
   1. remove from the manifest any additional backups. If you requested to keep 2 and you now have 3, the oldest digest path will be removed from the manifest

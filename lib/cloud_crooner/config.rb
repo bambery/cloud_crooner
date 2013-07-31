@@ -47,10 +47,10 @@ module CloudCrooner
     attr_accessor :public_path
 
     # manifest for files to upload, defaults to app's manifest
+    # set in CloudCrooner::registered 
     attr_accessor :manifest
 
     # region of your AWS bucket, should be stored in ENV but can be overwritten in config block
-    # while not technically required by fog, aws will complain bitterly and has a hit on performance 
     def region
       if @region
         return @region
@@ -67,7 +67,7 @@ module CloudCrooner
     end
 
     # AWS bucket name, can be stored in ENV but can be overwritten in config block
-    # defaults to looking in ENV['AWS_BUCKET_NAME']
+    # Defaults to ENV['AWS_BUCKET_NAME']
     def bucket_name 
       if @bucket_name
         return @bucket_name
@@ -79,7 +79,7 @@ module CloudCrooner
     attr_writer :bucket_name
 
     # AWS access id key given by Amazon, should be stored in env but can be set to be elsewhere
-    # defaults to looking at ENV["AWS_ACCESS_ID_KEY"]
+    # Defaults to ENV["AWS_ACCESS_ID_KEY"]
     def aws_access_key_id
       if @aws_access_key_id
         return @aws_access_key_id
@@ -91,7 +91,7 @@ module CloudCrooner
     attr_writer :aws_access_key_id
     
     # AWS secret access key given by Amazon, should be stored in env but can be set to be elsewhere
-    # defaults to looking at ENV["AWS_SECRET_ACCESS_KEY"]
+    # Defaults to ENV["AWS_SECRET_ACCESS_KEY"]
     def aws_secret_access_key 
       if @aws_secret_access_key
         return @aws_secret_access_key
@@ -104,6 +104,10 @@ module CloudCrooner
 
     def fog_options
       options = { :provider => "AWS", :aws_access_key_id => aws_access_key_id, :aws_secret_access_key => aws_secret_access_key, :region => region }
+    end
+
+    def asset_host
+      "s3-#{region}.amazonaws.com/#{bucket_name}"
     end
 
   end

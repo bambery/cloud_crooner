@@ -31,7 +31,8 @@ module CloudCrooner
       @local_compiled_assets_dir ||= manifest.dir
     end
 
-    # whether to delete remote assets (and backups) which are no longer in the manifest. Default true
+    # whether to delete remote assets (and backups) which are not in the manifest. Default true
+    # Only affects remote files under the set prefix. Remote files using a different prefix will not be affected
     def clean_up_remote? 
       @clean_up_remote.nil? ? true : @clean_up_remote 
     end

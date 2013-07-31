@@ -88,6 +88,30 @@ describe CloudCrooner::Storage do
       end # construct
     end # it
 
+    it 'should set assets to expire in one year' do
+      pending('thank you digest assets')
+    end
+
+    it 'should make the assets public by default' do
+      pending("currently no way to set custom headers")
+    end
+
+    it 'should set the proper mime type' do
+      pending('one check should be enough')
+    end
+
+    it 'should upload the gzip version of a file when available and gzip is smaller' do
+      pending('check to make sure headers are correct also')
+    end
+    
+    it 'should not upload both the uncompressed and gzip version of a file' do
+      pending('gzip is enough')
+    end
+
+    it 'should upload the uncompressed file when the gzip is not smaller' do
+      pending('gzip is not present')
+    end
+
     it 'uploads all files from the manifest' do
       within_construct do |c|
 
@@ -142,5 +166,9 @@ describe CloudCrooner::Storage do
 
       end #construct
     end # it
+
+    it 'does not delete gzip versions of files when they are present and still valid' do
+      pending('this is def broken right now')
+    end
   end # describe
 end

@@ -113,6 +113,9 @@ It will not remove old assets from the manifest. It will also not honor the numb
 + `rake clean_assets`: This will
   1. remove from the manifest any additional backups. If you requested to keep 2 and you now have 3, the oldest digest path will be removed from the manifest
   2. remove from the file system any additional backups. If you requested 2 and now have 3, Sprockets will delete from the local file system the oldest compiled digest file.
+
+It will not touch assets which have been deleted from the file system - you will always keep the manifest entries and the compiled backups.
+
 + `rake clobber_assets`: This will delete the compiled assets folder and all of its contents.
 
 Exciting! But if you are using CloudCrooner, you won't need to directly call any of these rake tasks, but knowledge is power. 

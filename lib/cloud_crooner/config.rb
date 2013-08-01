@@ -38,7 +38,7 @@ module CloudCrooner
     end
     attr_writer :clean_up_remote
 
-    # Used with clean_up_remote: how many backups to keep for each asset in the manifest. Does not apply to assets that have been completely deleted from the file system. 
+    # Used with clean_up_remote: how many backups to keep for each asset in the manifest. Will still apply to assets that have been completely deleted from the file system. 
     def backups_to_keep
       @backups_to_keep ||= 2
     end

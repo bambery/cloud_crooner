@@ -107,7 +107,9 @@ module CloudCrooner
 
     def frequency(arr)
       # http://stackoverflow.com/questions/9095017/comparing-two-arrays-in-ruby
-      p = Hash.new(0); arr.each{ |v| p[v] += 1 }; p
+      p = Hash.new(0)
+      arr.each{ |v| p[v] += 1 }
+      p
     end
 
   end

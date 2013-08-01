@@ -89,7 +89,20 @@ describe CloudCrooner::Storage do
     end # it
 
     it 'should set assets to expire in one year' do
-      pending('thank you digest assets')
+      within_construct do |c|
+
+        mock_app(c)
+        CloudCrooner.config.manifest.compile('a.css')
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        mock_fog(@storage)
+
+        expect(@storage.remote_assets).to eq([])
+
+        filename = File.join( 'assets', sprockets_env['a.css'].digest_path)
+
+        @storage.upload_file(filename)
+
+        expect(@storage.bucket.get(filename).cache_control).to eq("public, max-age=31557600") 
     end
 
     it 'should make the assets public by default' do
@@ -101,15 +114,56 @@ describe CloudCrooner::Storage do
     end
 
     it 'should upload the gzip version of a file when available and gzip is smaller' do
-      pending('check to make sure headers are correct also')
-    end
-    
+       within_construct do |c|
+
+          mock_app(c)
+          CloudCrooner.config.manifest.compile('c.css')
+          @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+          mock_fog(@storage)
+
+          expect(@storage.remote_assets).to eq([])
+
+          filename = File.join( 'assets', sprockets_env['c.css'].digest_path)
+
+          @storage.upload_file(filename)
+          expect(@storage.remote_assets).to include(filename)
+          expect(@storage.bucket.files.get(filename).content_encoding).to eq('gzip')
+      end # construct
+    end # it
+      
     it 'should not upload both the uncompressed and gzip version of a file' do
-      pending('gzip is enough')
+      within_construct do |c|
+
+        mock_app(c)
+        CloudCrooner.config.manifest.compile('c.css')
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        mock_fog(@storage)
+
+        expect(@storage.remote_assets).to eq([])
+
+        @storage.upload_file(File.join( 'assets', sprockets_env['c.css'].digest_path))
+
+        expect(@storage.remote_assets.count).to eq(1)
+      end
     end
 
     it 'should upload the uncompressed file when the gzip is not smaller' do
-      pending('gzip is not present')
+      within_construct do |c|
+
+        mock_app(c)
+        CloudCrooner.config.manifest.compile('b.css')
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        mock_fog(@storage)
+
+        expect(@storage.remote_assets).to eq([])
+
+        filename = File.join( 'assets', sprockets_env['b.css'].digest_path)
+
+        @storage.upload_file(filename)
+        expect(File.exist?(File.join(c, "public", filename + ".gz"))).to be_true
+        expect(@storage.remote_assets).to include(filename)
+        expect(@storage.bucket.files.get(filename).content_encoding).to be_nil 
+      end
     end
 
     it 'uploads all files from the manifest' do
@@ -119,7 +173,7 @@ describe CloudCrooner::Storage do
         @storage = CloudCrooner::Storage.new(CloudCrooner.config)
         mock_fog(@storage)
         CloudCrooner.config.manifest.compile(Dir[uncompiled_assets_dir(c) + "/*"])
-        CloudCrooner.config.manifest.files.count.should eq(6)
+        CloudCrooner.config.manifest.files.count.should eq(7)
         @storage.upload_files
         expect(@storage.local_equals_remote?).to be_true 
         
@@ -135,7 +189,7 @@ describe CloudCrooner::Storage do
         mock_fog(@storage)
 
         CloudCrooner.config.manifest.compile(Dir[uncompiled_assets_dir(c) + "/*"])
-        CloudCrooner.config.manifest.files.count.should eq(6)
+        CloudCrooner.config.manifest.files.count.should eq(7)
 
         @storage.upload_file(File.join(@storage.config.prefix, sprockets_env['a.js'].digest_path))
         @storage.upload_files
@@ -151,7 +205,7 @@ describe CloudCrooner::Storage do
         mock_fog(@storage)
 
         CloudCrooner.config.manifest.compile(Dir[uncompiled_assets_dir(c) + "/*"])
-        CloudCrooner.config.manifest.files.count.should eq(6)
+        CloudCrooner.config.manifest.files.count.should eq(7)
 
         # upload a non-manifest tracked file
         @storage.bucket.files.create(
@@ -167,8 +221,5 @@ describe CloudCrooner::Storage do
       end #construct
     end # it
 
-    it 'does not delete gzip versions of files when they are present and still valid' do
-      pending('this is def broken right now')
-    end
   end # describe
 end

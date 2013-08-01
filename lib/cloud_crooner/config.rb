@@ -52,6 +52,9 @@ module CloudCrooner
     # set in CloudCrooner::registered 
     attr_accessor :manifest
 
+    # an array of the assets to compile and upload, given by their Sprockets load_path
+    attr_accessor :assets
+
     # region of your AWS bucket, should be stored in ENV but can be overwritten in config block
     def region
       if @region

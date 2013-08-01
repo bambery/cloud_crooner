@@ -51,9 +51,21 @@ module CloudCrooner
     def storage
       @storage ||= Storage.new(self.config)
     end
+    
+    def compile_sprockets_assets
+      CloudCrooner.config.manifest.compile(*CloudCrooner.config.assets)
+    end
+
+    def clean_sprockets_assets
+      CloudCrooner.config.manifest.clean(CloudCrooner.config.backups_to_keep)
+    end
+
 
     def sync
-      self.storage.upload_files
+      compile_sprockets_assets
+      clean_sprockets_assets
+
+      storage.upload_files
 
       if self.config.clean_up_remote?
         self.storage.clean_remote

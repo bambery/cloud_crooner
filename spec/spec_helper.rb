@@ -44,7 +44,8 @@ RSpec.configure do |rconf|
         f << "*/\n"
       end
       c.file('assets/a.css') do |f|
-        f << "prrprr"
+        f << "prrprr\n"
+        f << "ha ha ha\n"
       end
       c.file('assets/b.css') do |f|
         f << "grrgrr"
@@ -56,4 +57,25 @@ RSpec.configure do |rconf|
       end
     }.call(construct)
   end
+
+  def mock_app(c)
+      sample_assets(c)
+      # need to specify manifest so construct will clean it up
+      public_folder = c.directory 'public'
+      manifest_file = c.file 'public/assets/manifest.json'
+
+        app = Class.new(Sinatra::Base) do
+          set :sprockets, sprockets_env 
+          set :assets_prefix, '/assets'
+          set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
+          set :public_folder, public_folder
+          register CloudCrooner
+        end
+    end
+
+  def uncompiled_assets_dir(construct)
+    "#{construct}" + "/assets"
+  end
+
+
 end

@@ -1,21 +1,6 @@
 require 'spec_helper'
 require 'cloud_crooner/storage'
 
-def mock_app(c)
-    sample_assets(c)
-    # need to specify manifest so construct will clean it up
-    public_folder = c.directory 'public'
-    manifest_file = c.file 'public/assets/manifest.json'
-
-      app = Class.new(Sinatra::Base) do
-        set :sprockets, sprockets_env 
-        set :assets_prefix, '/assets'
-        set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
-        set :public_folder, public_folder
-        register CloudCrooner
-      end
-  end
-
 def mock_fog(storage)
   stub_env_vars
   Fog.mock!
@@ -24,10 +9,6 @@ def mock_fog(storage)
     :key => storage.config.bucket_name,
     :public => true
   )
-end
-
-def uncompiled_assets_dir(construct)
-  "#{construct}" + "/assets"
 end
 
 describe CloudCrooner::Storage do
@@ -102,7 +83,8 @@ describe CloudCrooner::Storage do
 
         @storage.upload_file(filename)
 
-        expect(@storage.bucket.get(filename).cache_control).to eq("public, max-age=31557600") 
+        expect(@storage.bucket.files.get(filename).cache_control).to eq("public, max-age=31557600") 
+      end
     end
 
     it 'should make the assets public by default' do

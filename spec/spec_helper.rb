@@ -49,6 +49,11 @@ RSpec.configure do |rconf|
       c.file('assets/b.css') do |f|
         f << "grrgrr"
       end
+      c.file('assets/c.css') do |f|
+        f << "h1{color:blue;}\n"
+        f << "h2{color:blue;}\n"
+        f << "h3{color:blue;}\n"
+      end
     }.call(construct)
   end
 end

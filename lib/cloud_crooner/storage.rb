@@ -7,6 +7,7 @@ module CloudCrooner
 
     def initialize(cfg)
       @config = cfg
+      p "my storage id #{self.object_id}"
     end
 
     def connection
@@ -45,6 +46,7 @@ module CloudCrooner
     def upload_file(f)
       # grabs the compiled asset from public_path
       full_file_path = File.join(self.config.public_path, f)
+      p "object id in upload file #{self.config.object_id}"
       one_year = 31557600
       mime = Rack::Mime.mime_type(File.extname(f)) 
       file = {

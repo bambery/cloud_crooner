@@ -16,7 +16,6 @@ module CloudCrooner
     def registered(app)
       # create a manifest if there isn't one
       app.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless app.settings.respond_to?(:manifest)
-      @config = Config.new
       # these settings depend on the app
       with_setting(app, :assets_prefix)  { |value| config.prefix = value }
       with_setting(app, :manifest)       { |value| config.manifest = value }
@@ -36,7 +35,6 @@ module CloudCrooner
 
     def config
       @config ||= Config.new
-      @config
     end
 
     def configure(&proc)
@@ -49,23 +47,22 @@ module CloudCrooner
     end
 
     def storage
-      @storage ||= Storage.new(self.config)
+        @storage ||= Storage.new(self.config)
     end
     
     def compile_sprockets_assets
-      CloudCrooner.config.manifest.compile(*CloudCrooner.config.assets)
+      self.config.manifest.compile(*self.config.assets)
     end
 
     def clean_sprockets_assets
-      CloudCrooner.config.manifest.clean(CloudCrooner.config.backups_to_keep)
+      self.config.manifest.clean(self.config.backups_to_keep)
     end
 
-
     def sync
-      compile_sprockets_assets
-      clean_sprockets_assets
+      self.compile_sprockets_assets
+      self.clean_sprockets_assets
 
-      storage.upload_files
+      self.storage.upload_files
 
       if self.config.clean_up_remote?
         self.storage.clean_remote

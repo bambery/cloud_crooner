@@ -1,20 +1,10 @@
 require 'spec_helper'
 require 'cloud_crooner/storage'
 
-def mock_fog(storage)
-  stub_env_vars
-  Fog.mock!
-  storage.config.bucket_name = SecureRandom.hex
-  storage.connection.directories.create(
-    :key => storage.config.bucket_name,
-    :public => true
-  )
-end
-
 describe CloudCrooner::Storage do
   describe 'initialization' do
     before(:each) do
-
+      clear_class_instance
       Class.new(Sinatra::Base) do
         set :sprockets, sprockets_env 
         set :assets_prefix, '/assets'
@@ -87,13 +77,23 @@ describe CloudCrooner::Storage do
       end
     end
 
-    it 'should make the assets public by default' do
-      pending("currently no way to set custom headers")
-    end
-
     it 'should set the proper mime type' do
-      pending('one check should be enough')
-    end
+      within_construct do |c|
+
+        mock_app(c)
+        CloudCrooner.config.manifest.compile('a.css')
+        @storage = CloudCrooner::Storage.new(CloudCrooner.config)
+        mock_fog(@storage)
+
+        expect(@storage.remote_assets).to eq([])
+
+        filename = File.join( 'assets', sprockets_env['a.css'].digest_path)
+
+        @storage.upload_file(filename)
+
+        expect(@storage.bucket.files.get(filename).content_type).to eq('text/css') 
+      end # construct
+    end # it
 
     it 'should upload the gzip version of a file when available and gzip is smaller' do
        within_construct do |c|

@@ -15,23 +15,32 @@ describe CloudCrooner do
       expect(CloudCrooner.public_folder).to eq("public")
     end
 
-    it 'creates a manifest' do
-      expect(CloudCrooner.manifest).to be_an_instance_of(Sprockets::Manifest)
-      expect(CloudCrooner.manifest.dir).to eq(File.join(File.dirname(__FILE__).chomp("/spec"), "public/assets"))
-    end
-  end
+    it 'checks env for Amazon credentials' do
+      ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
+      ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
+      ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
+      ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
+
+      expect(CloudCrooner.aws_access_key_id).to eq("asdf123")
+      expect(CloudCrooner.aws_secret_access_key).to eq("secret")
+    end # it
+  end # describe
 
   describe 'default configuration that touches filesystem' do
+    # aka: these tests require constructs
+    it 'creates a manifest' do
+      within_construct do |c|
+        c.directory 'public/assets'
+
+        expect(CloudCrooner.manifest).to be_an_instance_of(Sprockets::Manifest)
+        expect(CloudCrooner.manifest.dir).to eq(File.join(c, "public/assets"))
+      end #construct
+    end # it
 
     it 'defaults assets to compile to files under prefix' do
       within_construct do |c|
         asset_folder = c.directory 'assets'
         c.file('assets/a.css')
-
-#        CloudCrooner.configure do |config|
-#          config.prefix = asset_folder 
-#
-#        end
 
         expect(CloudCrooner.assets_to_compile).to eq(%w(a.css))
       end # construct
@@ -42,10 +51,6 @@ describe CloudCrooner do
         asset_folder = c.directory 'assets'
         c.file('assets/a.css')
 
-#        CloudCrooner.configure do |config|
-#          config.prefix = asset_folder 
-#        end
-
         expect(CloudCrooner.sprockets['a.css']).to be_an_instance_of(Sprockets::BundledAsset) 
         expect(CloudCrooner.sprockets['a.css'].pathname.to_s).to eq(File.join(c, 'assets', 'a.css'))
 
@@ -54,7 +59,6 @@ describe CloudCrooner do
  
   end # describe
 
-#  end #construct
 
   describe 'custom configuration' do
 
@@ -156,7 +160,6 @@ describe CloudCrooner do
 #        expect(CloudCrooner.storage.local_equals_remote?).to be_true
 #      end # construct
 #    end # it
-#  end
   after(:each) do
     reload_crooner
   end

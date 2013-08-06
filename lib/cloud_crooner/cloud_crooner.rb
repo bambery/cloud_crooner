@@ -3,6 +3,7 @@ require 'sprockets-helpers'
 
 module CloudCrooner
 
+  class FogSettingError < StandardError; end
 #  class MissingRequiredSetting < StandardError
 #    def initialize(name)
 #      @name = name
@@ -13,6 +14,17 @@ module CloudCrooner
 #    end
 #  end
 
+    VALID_AWS_REGIONS = %w(
+      us-west-2
+      us-west-1
+      eu-west-1
+      ap-southeast-1
+      ap-southeast-2
+      ap-northeast-1
+      sa-east-1
+    )
+
+
   class << self
 
     def configure(&proc)
@@ -21,6 +33,7 @@ module CloudCrooner
     end
 
     def configure_sprockets_helpers
+      # if you're running fully on defaults, you must call this explicitly in config.ru if you want to use the helpers
       Sprockets::Helpers.configure do |config|
         if ENV['RACK_ENV'] == "production"
           config.manifest = manifest
@@ -74,31 +87,57 @@ module CloudCrooner
     end
     attr_writer :assets_to_compile
 
-    #TODO validate
-    attr_accessor :region
+    # Region of your AWS bucket
+    # Defaults to looking in ENV but can be overwritten in config block
+    def region
+      if @region
+        return @region
+      elsif !ENV.has_key?('AWS_REGION')
+        raise FogSettingError, "AWS Region must be set in ENV or in configure block"
+      elsif !VALID_AWS_REGIONS.include?(ENV['AWS_REGION'])
+        raise FogSettingError, "Invalid region"
+      end
+      @region = ENV['AWS_REGION']
+    end
 
-    attr_accessor :bucket_name
+    def region=(val)
+      VALID_AWS_REGIONS.include?(val) ? @region = val : (raise FogSettingError, "Invalid region") 
+    end
 
+    def bucket_name
+      #check env
+    end
+    attr_writer :bucket_name
+    
+    # AWS access id key given by Amazon, should be stored in 
+    # env but can be set to be elsewhere.
+    # Defaults to ENV["AWS_ACCESS_ID_KEY"]
     def aws_access_key_id
-      #TODO check env
+      if @aws_access_key_id
+        return @aws_access_key_id
+      elsif !ENV.has_key?('AWS_ACCESS_KEY_ID')
+        raise FogSettingError, "access key id must be set in ENV or configure block"
+      end
+      @aws_access_key_id ||= ENV['AWS_ACCESS_KEY_ID']
     end
     attr_writer :aws_access_key_id
-
-    def aws_secret_access_key
-      #TODO check env
+    
+    # AWS secret access key given by Amazon, should be stored in env but can be set to be elsewhere
+    # Defaults to ENV["AWS_SECRET_ACCESS_KEY"]
+    def aws_secret_access_key 
+      if @aws_secret_access_key
+        return @aws_secret_access_key
+      elsif !ENV.has_key?('AWS_SECRET_ACCESS_KEY')
+        raise FogSettingError, "secret access key must be set in ENV or configure block"
+      end
+      @aws_secret_access_key ||= ENV['AWS_SECRET_ACCESS_KEY']
     end
     attr_writer :aws_secret_access_key
-
 
     def asset_paths
       @asset_paths ||= %w(assets)
     end
     attr_writer :paths
-
-    def clean_up_remote
-      @clean_up_remote = true
-    end
-    attr_writer :clean_up_remote
 
     def backups_to_keep
       @backups_to_keep ||= 2

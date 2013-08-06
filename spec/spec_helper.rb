@@ -7,6 +7,11 @@ require 'securerandom'
 RSpec.configure do |rconf|
   rconf.include Construct::Helpers
 
+  def clear_class_instance
+    CloudCrooner.instance_variable_set :@config, nil
+    CloudCrooner.instance_variable_set :@storage, nil
+  end
+
   def sprockets_env
     @sprockets_env ||= Sprockets::Environment.new.tap do |env|
       env.append_path 'assets'
@@ -44,11 +49,50 @@ RSpec.configure do |rconf|
         f << "*/\n"
       end
       c.file('assets/a.css') do |f|
-        f << "prrprr"
+        f << "prrprr\n"
+        f << "ha ha ha\n"
       end
       c.file('assets/b.css') do |f|
         f << "grrgrr"
       end
+      c.file('assets/c.css') do |f|
+        f << "h1{color:blue;}\n"
+        f << "h2{color:blue;}\n"
+        f << "h3{color:blue;}\n"
+      end
     }.call(construct)
   end
+
+  def mock_app(c)
+      clear_class_instance
+      sample_assets(c)
+      # need to specify manifest so construct will clean it up
+      public_folder = c.directory 'public'
+      p public_folder
+      manifest_file = c.file 'public/assets/manifest.json'
+      p manifest_file
+
+        app = Class.new(Sinatra::Base) do
+          set :sprockets, sprockets_env 
+          set :assets_prefix, '/assets'
+          set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
+          set :public_folder, public_folder
+          register CloudCrooner
+        end
+    end
+
+  def uncompiled_assets_dir(construct)
+    "#{construct}" + "/assets"
+  end
+
+  def mock_fog(storage)
+    stub_env_vars
+    Fog.mock!
+    storage.config.bucket_name = SecureRandom.hex
+    storage.connection.directories.create(
+      :key => storage.config.bucket_name,
+      :public => true
+    )
+  end
+
 end

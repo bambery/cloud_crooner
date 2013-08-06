@@ -103,7 +103,30 @@ module CloudCrooner
     attr_writer :backups_to_keep
 
     def log(msg)
-      $stdout puts msg
+      $stdout.puts msg
+    end
+
+    def storage
+        @storage ||= Storage.new(self.config)
+    end
+    
+    def compile_sprockets_assets
+      self.config.manifest.compile(*self.config.assets)
+    end
+
+    def clean_sprockets_assets
+      self.config.manifest.clean(self.config.backups_to_keep)
+    end
+
+    def sync
+      self.compile_sprockets_assets
+      self.clean_sprockets_assets
+
+      self.storage.upload_files
+
+      if self.config.clean_up_remote?
+        self.storage.clean_remote
+      end
     end
 
   end

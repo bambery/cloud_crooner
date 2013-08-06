@@ -7,6 +7,7 @@ module CloudCrooner
 
     def initialize(cfg)
       @config = cfg
+      p "my storage id #{self.object_id}"
     end
 
     def connection
@@ -19,7 +20,7 @@ module CloudCrooner
 
     def local_compiled_assets 
       # compiled assets prepended with prefix for comparison against remote
-      @local_compiled_assets ||= self.config.manifest.files.keys.map {|f| File.join(self.config.prefix, f)} 
+      self.config.manifest.files.keys.map {|f| File.join(self.config.prefix, f)} 
     end
     
     def exists_on_remote?(file)
@@ -45,6 +46,7 @@ module CloudCrooner
     def upload_file(f)
       # grabs the compiled asset from public_path
       full_file_path = File.join(self.config.public_path, f)
+      p "object id in upload file #{self.config.object_id}"
       one_year = 31557600
       mime = Rack::Mime.mime_type(File.extname(f)) 
       file = {
@@ -107,7 +109,9 @@ module CloudCrooner
 
     def frequency(arr)
       # http://stackoverflow.com/questions/9095017/comparing-two-arrays-in-ruby
-      p = Hash.new(0); arr.each{ |v| p[v] += 1 }; p
+      p = Hash.new(0)
+      arr.each{ |v| p[v] += 1 }
+      p
     end
 
   end

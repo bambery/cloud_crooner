@@ -17,41 +17,45 @@ module CloudCrooner
       sa-east-1
     )
 
-    # (virtual) subdirectory for remote assets, ex "assets/".
-    # Default is app's asset_prefix used by Sprockets.
+    # (virtual) subdirectory for remote assets, ex "/assets".
+    # Default is app's asset_prefix used by Sprockets and can't be changed.
+    # set in CloudCrooner::registered 
     def prefix=(val)
-      val.prepend("/") unless val.start_with?("/")
-      @prefix = val.chomp("/") 
+      # strip leading slash
+      @prefix ||= val.sub(/^\//, '')  
     end
     attr_reader :prefix
 
     # Path from app root of static assets as determined by the manifest. 
-    # This is set automatically by configure_cloud_crooner and cannot be modified.
-    def local_compiled_assets_dir=(val)
-      @local_compiled_assets_dir ||= val
+    def local_compiled_assets_dir
+      @local_compiled_assets_dir ||= manifest.dir
     end
-    attr_reader :local_compiled_assets_dir
 
-    # whether to delete remote assets which are no longer in the manifest. Default true
+    # whether to delete remote assets (and backups) which are not in the manifest. Default true
+    # Only affects remote files under the set prefix. Remote files using a different prefix will not be affected
     def clean_up_remote? 
       @clean_up_remote.nil? ? true : @clean_up_remote 
     end
     attr_writer :clean_up_remote
 
-    # Used with clean_up_remote: how many backups to keep for each asset in the manifest. Does not apply to assest that have been completely deleted from the file system. 
+    # Used with clean_up_remote: how many backups to keep for each asset in the manifest. Will still apply to assets that have been completely deleted from the file system. 
     def backups_to_keep
       @backups_to_keep ||= 2
     end
     attr_writer :backups_to_keep
 
     # defaults to app's public_folder 
+    # set in CloudCrooner::registered 
     attr_accessor :public_path
 
     # manifest for files to upload, defaults to app's manifest
+    # set in CloudCrooner::registered 
     attr_accessor :manifest
 
+    # an array of the assets to compile and upload, given by their Sprockets load_path
+    attr_accessor :assets
+
     # region of your AWS bucket, should be stored in ENV but can be overwritten in config block
-    # while not technically required by fog, aws will complain bitterly and has a hit on performance 
     def region
       if @region
         return @region
@@ -67,7 +71,8 @@ module CloudCrooner
       VALID_AWS_REGIONS.include?(val) ? @region = val : (raise FogSettingError, "Invalid region") 
     end
 
-    # AWS bucket name, should be stored in ENV but can be overwritten in config block
+    # AWS bucket name, can be stored in ENV but can be overwritten in config block
+    # Defaults to ENV['AWS_BUCKET_NAME']
     def bucket_name 
       if @bucket_name
         return @bucket_name
@@ -78,38 +83,36 @@ module CloudCrooner
     end
     attr_writer :bucket_name
 
-    # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
+    # AWS access id key given by Amazon, should be stored in env but can be set to be elsewhere
+    # Defaults to ENV["AWS_ACCESS_ID_KEY"]
     def aws_access_key_id
       if @aws_access_key_id
         return @aws_access_key_id
       elsif !ENV.has_key?('AWS_ACCESS_KEY_ID')
-        raise FogSettingError, "AWS_ACCESS_KEY_ID must be set in ENV"
+        raise FogSettingError, "access key id must be set in ENV or configure block"
       end
       @aws_access_key_id ||= ENV['AWS_ACCESS_KEY_ID']
     end
-
-    # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
-    def aws_access_key_id=(val)
-      raise FogSettingError, "AWS_ACCESS_KEY_ID is sensitive data that should not be defined where it can be checked into source control. Please set it in ENV."
-    end
-
-    # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
-    def aws_secret_access_key
+    attr_writer :aws_access_key_id
+    
+    # AWS secret access key given by Amazon, should be stored in env but can be set to be elsewhere
+    # Defaults to ENV["AWS_SECRET_ACCESS_KEY"]
+    def aws_secret_access_key 
       if @aws_secret_access_key
         return @aws_secret_access_key
       elsif !ENV.has_key?('AWS_SECRET_ACCESS_KEY')
-        raise FogSettingError, "AWS_SECRET_ACCESS_KEY must be set in ENV"
+        raise FogSettingError, "secret access key must be set in ENV or configure block"
       end
       @aws_secret_access_key ||= ENV['AWS_SECRET_ACCESS_KEY']
     end
-
-    # TODO should allow this setting to be taken from elsewhere in case juggling multiple AWS accounts
-    def aws_secret_access_key=(val)
-      raise FogSettingError, "AWS_SECRET_ACCESS_KEY is sensitive data that should not be defined where it can be checked into source control. Please set it in ENV."
-    end
+    attr_writer :aws_secret_access_key
 
     def fog_options
       options = { :provider => "AWS", :aws_access_key_id => aws_access_key_id, :aws_secret_access_key => aws_secret_access_key, :region => region }
+    end
+
+    def asset_host
+      "s3-#{region}.amazonaws.com/#{bucket_name}"
     end
 
   end

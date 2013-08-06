@@ -24,7 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "sinatra"
   spec.add_development_dependency "test-construct"
 
-  spec.add_dependency             "activemodel" # must be listed first, as it requires an old version of builder gem
   spec.add_dependency             "sprockets", "~>2.10"
   spec.add_dependency             "fog", "~> 1.12" 
 end

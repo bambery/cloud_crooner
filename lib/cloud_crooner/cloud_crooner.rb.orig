@@ -32,6 +32,7 @@ module CloudCrooner
       end
     end
 
+<<<<<<< HEAD
     def sprockets
       @sprockets ||= Sprockets::Environment.new
     end
@@ -49,6 +50,16 @@ module CloudCrooner
 
     def public_folder
       @public_folder ||= 'public'
+=======
+  class << self
+    def registered(app)
+      # create a manifest if there isn't one
+      app.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless app.settings.respond_to?(:manifest)
+      # these settings depend on the app
+      with_setting(app, :assets_prefix)  { |value| config.prefix = value }
+      with_setting(app, :manifest)       { |value| config.manifest = value }
+      with_setting(app, :public_folder) { |value| config.public_path = value }
+>>>>>>> master
     end
     attr_writer :public_folder
 
@@ -92,8 +103,13 @@ module CloudCrooner
     end
     attr_writer :paths
 
+<<<<<<< HEAD
     def clean_up_remote
       @clean_up_remote = true
+=======
+    def config
+      @config ||= Config.new
+>>>>>>> master
     end
     attr_writer :clean_up_remote
 
@@ -103,8 +119,34 @@ module CloudCrooner
     attr_writer :backups_to_keep
 
     def log(msg)
-      $stdout.puts msg
+      $stdout puts msg
     end
+
+    def storage
+        @storage ||= Storage.new(self.config)
+    end
+    
+    def compile_sprockets_assets
+      self.config.manifest.compile(*self.config.assets)
+    end
+
+    def clean_sprockets_assets
+      self.config.manifest.clean(self.config.backups_to_keep)
+    end
+
+    def sync
+      self.compile_sprockets_assets
+      self.clean_sprockets_assets
+
+      self.storage.upload_files
+
+      if self.config.clean_up_remote?
+        self.storage.clean_remote
+      end
+    end
+
+  end
+end
 
 #    def registered(app)
 #      # create a manifest if there isn't one
@@ -142,33 +184,6 @@ module CloudCrooner
 #      $stdout.puts msg
 #    end
 #
-#    def storage
-#        @storage ||= Storage.new(self.config)
-#    end
-#    
-#    def compile_sprockets_assets
-#      self.config.manifest.compile(*self.config.assets)
-#    end
-#
-#    def clean_sprockets_assets
-#      self.config.manifest.clean(self.config.backups_to_keep)
-#    end
-#
-#    def sync
-#      self.compile_sprockets_assets
-#      self.clean_sprockets_assets
-#
-#      self.storage.upload_files
-#
-#      if self.config.clean_up_remote?
-#        self.storage.clean_remote
-#      end
-#    end
-#
-#  end
-#end
-
-
 #  end
 #end
 #

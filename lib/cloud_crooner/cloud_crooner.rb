@@ -1,4 +1,5 @@
 require 'sprockets'
+require 'sprockets-helpers'
 
 module CloudCrooner
 
@@ -14,7 +15,7 @@ module CloudCrooner
 
   class << self
 
-    def configure
+    def configure(&proc)
       yield self
       configure_sprockets_helpers
     end
@@ -33,7 +34,11 @@ module CloudCrooner
     end
 
     def sprockets
-      @sprockets ||= Sprockets::Environment.new
+      if @sprockets.nil?
+        @sprockets = Sprockets::Environment.new
+        asset_paths.each {|path| @sprockets.append_path(path)}
+      end
+      return @sprockets
     end
     attr_writer :sprockets
 
@@ -45,18 +50,27 @@ module CloudCrooner
     def prefix
       @prefix ||= 'assets'
     end
-    attr_writer :prefix
+
+    def prefix=(val)
+      #remove any slashes at beginning or end 
+      @prefix = val.chomp('/').gsub(/^\//, "")
+    end
 
     def public_folder
       @public_folder ||= 'public'
     end
-    attr_writer :public_folder
+
+    def public_folder=(val)
+      #remove any slashes at beginning or end 
+      @public_folder = val.chomp('/').gsub(/^\//, "")
+    end
 
     def assets_to_compile  
+      # list of assets to compile, given by their Sprocket's load path
       # defaults to every file under the prefix directory
-      return if @assets_to_compile 
+      return @assets_to_compile if @assets_to_compile 
       files = Dir.glob(prefix + "**/*").select {|f| File.file?(f)}
-      files.collect { |f| f.gsub[/^prefix\//, ""] }
+      files.collect! { |f| f.gsub(/^#{prefix}\//, "") }
     end
     attr_writer :assets_to_compile
 
@@ -75,20 +89,9 @@ module CloudCrooner
     end
     attr_writer :aws_secret_access_key
 
-    def provider
-      'AWS'
-    end
-
-    def digest
-      true
-    end
-
-    def asset_host
-      #TODO calculate 
-    end
 
     def asset_paths
-      @asset_paths ||= 'assets'
+      @asset_paths ||= %w(assets)
     end
     attr_writer :paths
 
@@ -105,6 +108,23 @@ module CloudCrooner
     def log(msg)
       $stdout.puts msg
     end
+
+    private
+
+    def provider
+      'AWS'
+    end
+
+    def digest
+      true
+    end
+
+    def asset_host
+      #TODO calculate 
+    end
+
+  end
+end
 
 #    def registered(app)
 #      # create a manifest if there isn't one

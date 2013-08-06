@@ -3,9 +3,16 @@ require 'sinatra/base'
 require 'cloud_crooner'
 require 'construct'
 require 'securerandom'
+require 'sprockets-helpers'
 
 RSpec.configure do |rconf|
   rconf.include Construct::Helpers
+
+  def reload_crooner
+    # need to unset the class instance variables
+    Object.send(:remove_const, 'CloudCrooner')
+    load 'cloud_crooner/cloud_crooner.rb'
+  end
 
   def clear_class_instance
     CloudCrooner.instance_variable_set :@config, nil
@@ -96,3 +103,4 @@ RSpec.configure do |rconf|
   end
 
 end
+

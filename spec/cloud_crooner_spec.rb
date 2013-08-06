@@ -15,6 +15,10 @@ describe CloudCrooner do
       expect(CloudCrooner.public_folder).to eq("public")
     end
 
+    it "defaults to looking for assets in 'assets'" do
+      expect(CloudCrooner.asset_paths).to eq(%w(assets))
+    end
+
     it 'checks env for Amazon credentials' do
       ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
       ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
@@ -24,10 +28,59 @@ describe CloudCrooner do
       expect(CloudCrooner.aws_access_key_id).to eq("asdf123")
       expect(CloudCrooner.aws_secret_access_key).to eq("secret")
     end # it
+
+    it "checks env for bucket name" do
+      ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
+      ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
+
+      expect(CloudCrooner.bucket_name).to eq("test-bucket")
+    end #it
+
+    it "checks env for region" do
+      ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
+      ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
+
+      expect(CloudCrooner.region).to eq("eu-west-1")
+    end
+
+    it "errors if the ENV region is not valid" do
+      ENV.stub(:[]).with("AWS_REGION").and_return("shangrila")
+      ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
+
+      expect{CloudCrooner.region}.to raise_error(CloudCrooner::FogSettingError)
+    end
+
+    it 'defaults to keeping 2 backups' do
+      expect(CloudCrooner.backups_to_keep).to eq(2)
+    end
+
   end # describe
+
+  describe 'errors if missing required settings' do
+    it "errors if region is not assigned" do
+      ENV.stub(:[]).and_return(nil)
+      expect{CloudCrooner.region}.to raise_error(CloudCrooner::FogSettingError, "AWS Region must be set in ENV or in configure block")
+    end
+
+    it "errors if the bucket is not set" do
+      ENV.stub(:[]).and_return(nil)
+      expect{CloudCrooner.bucket_name}.to raise_error(CloudCrooner::FogSettingError, "Bucket name must be set in ENV or configure block")
+    end
+
+    it "errors if aws access key id is unset" do
+      ENV.stub(:[]).and_return(nil)
+      expect{CloudCrooner.aws_access_key_id}.to raise_error
+    end
+    
+    it "errors if aws secret access key is unset" do
+      expect{CloudCrooner.aws_secret_access_key}.to raise_error
+    end
+
+  end
 
   describe 'default configuration that touches filesystem' do
     # aka: these tests require constructs
+
     it 'creates a manifest' do
       within_construct do |c|
         c.directory 'public/assets'
@@ -56,7 +109,14 @@ describe CloudCrooner do
 
        end # construct 
     end # it
- 
+
+    it 'initializes sprockets-helpers' do
+      within_construct do |c|
+        pending("check to make sure a tag is properly generated")
+      end # context
+    end #it
+
+
   end # describe
 
 

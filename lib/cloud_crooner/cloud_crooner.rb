@@ -86,6 +86,18 @@ module CloudCrooner
       files.collect! { |f| f.gsub(/^#{prefix}\//, "") }
     end
     attr_writer :assets_to_compile
+    
+    # AWS bucket name, can be stored in ENV but can be overwritten in config block
+    # Defaults to ENV['AWS_BUCKET_NAME']
+    def bucket_name 
+      if @bucket_name
+        return @bucket_name
+      elsif !ENV.has_key?('AWS_BUCKET_NAME')
+        raise FogSettingError, "Bucket name must be set in ENV or configure block"
+      end
+      @bucket_name = ENV['AWS_BUCKET_NAME'] 
+    end
+    attr_writer :bucket_name
 
     # Region of your AWS bucket
     # Defaults to looking in ENV but can be overwritten in config block
@@ -104,11 +116,6 @@ module CloudCrooner
       VALID_AWS_REGIONS.include?(val) ? @region = val : (raise FogSettingError, "Invalid region") 
     end
 
-    def bucket_name
-      #check env
-    end
-    attr_writer :bucket_name
-    
     # AWS access id key given by Amazon, should be stored in 
     # env but can be set to be elsewhere.
     # Defaults to ENV["AWS_ACCESS_ID_KEY"]
@@ -159,7 +166,7 @@ module CloudCrooner
     end
 
     def asset_host
-      #TODO calculate 
+      "s3-#{region}.amazonaws.com/#{bucket_name}"
     end
 
   end

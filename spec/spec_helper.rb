@@ -24,9 +24,16 @@ RSpec.configure do |rconf|
 #      env.append_path 'assets'
 #    end
 #  end
-#
+
+
+  # used for testing sprockets-helpers
+  def context(logical_path = 'application.js', pathname = nil)
+    pathname ||= Pathname.new(File.join('assets', logical_path)).expand_path
+    CloudCrooner.sprockets.context_class.new CloudCrooner.sprockets, logical_path, pathname
+  end
+
+
   def stub_env_vars
-    ENV.stub(:[]).and_return(nil)
 
     ENV.stub(:[]).with('AWS_REGION').and_return('eu-west-1')
     ENV.stub(:has_key?).with('AWS_REGION').and_return(true)

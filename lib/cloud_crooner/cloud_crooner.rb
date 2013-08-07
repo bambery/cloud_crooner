@@ -35,7 +35,7 @@ module CloudCrooner
     def configure_sprockets_helpers
       # if you're running fully on defaults, you must call this explicitly in config.ru if you want to use the helpers
       Sprockets::Helpers.configure do |config|
-        if ENV['RACK_ENV'] == "production"
+        if ENV['RACK_ENV'] == "production" && sync_enabled?
           config.manifest = manifest
           config.asset_host = asset_host
           config.digest = true
@@ -45,6 +45,16 @@ module CloudCrooner
         config.prefix = "/" + prefix
       end
     end
+
+    def sync_enabled?
+    # Disable this in prod if you want to serve compiled assets locally. 
+      @enabled.nil? ? (@enabled = true) : @enabled
+    end
+
+    def sync_enabled= (val)
+      @enabled = val if [ true, false ].include?(val)
+    end
+
 
     def sprockets
       if @sprockets.nil?
@@ -142,9 +152,16 @@ module CloudCrooner
     attr_writer :aws_secret_access_key
 
     def asset_paths
-      @asset_paths ||= %w(assets)
+    # logical paths to assets for use with Sprockets
+    # default: everything under the prefix dir 
+    # if sync is disabled, in prod it will default to public_folder/prefix to serve local static assets. 
+    # note that if sync is enabled in prod that asset paths will be added, but the link helpers bypass sprockets and grab the manifest links, and will only fall back to the paths if the asset is not found in the manifest. 
+      if ENV['RACK_ENV'] == 'production' && !sync_enabled?
+        @asset_paths ||= [public_folder + '/' + prefix]
+      end
+        @asset_paths ||= [prefix] 
     end
-    attr_writer :paths
+    attr_writer :asset_paths
 
     def backups_to_keep
       @backups_to_keep ||= 2

@@ -15,15 +15,20 @@ describe CloudCrooner do
       expect(CloudCrooner.public_folder).to eq("public")
     end
 
-    it 'defaults to sync enabled' do
-      expect(CloudCrooner.sync_enabled?).to be_true
+    it 'defaults to remote enabled' do
+      expect(CloudCrooner.remote_enabled?).to be_true
     end
 
     it "defaults to looking for assets in 'assets' in prod" do
+      ENV.stub(:[]).with('RACK_ENV').and_return('production')
       expect(CloudCrooner.asset_paths).to eq(%w(assets))
     end
 
-    it 'checks env for Amazon credentials' do
+    it "defaults to looking for assets in 'assets' in dev" do
+      expect(CloudCrooner.asset_paths).to eq(%w(assets))
+    end
+
+    it 'checks ENV for Amazon credentials' do
       ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
       ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
       ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
@@ -33,14 +38,14 @@ describe CloudCrooner do
       expect(CloudCrooner.aws_secret_access_key).to eq("secret")
     end # it
 
-    it "checks env for bucket name" do
+    it "checks ENV for bucket name" do
       ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
       ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
 
       expect(CloudCrooner.bucket_name).to eq("test-bucket")
     end #it
 
-    it "checks env for region" do
+    it "checks ENV for region" do
       ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
       ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
 
@@ -77,13 +82,14 @@ describe CloudCrooner do
     end
     
     it "errors if aws secret access key is unset" do
+      ENV.stub(:[]).and_return(nil)
       expect{CloudCrooner.aws_secret_access_key}.to raise_error
     end
 
   end
 
   describe 'default configuration that touches filesystem' do
-    # aka: these tests require constructs
+    # aka: these tests require temp files and constructs 
 
     it 'creates a manifest' do
       within_construct do |c|
@@ -98,8 +104,9 @@ describe CloudCrooner do
       within_construct do |c|
         asset_folder = c.directory 'assets'
         c.file('assets/a.css')
+        c.file('assets/b.css')
 
-        expect(CloudCrooner.assets_to_compile).to eq(%w(a.css))
+        expect(CloudCrooner.assets_to_compile).to eq(%w(a.css b.css))
       end # construct
     end # it
 
@@ -120,20 +127,18 @@ describe CloudCrooner do
         
         expect(Sprockets::Helpers.prefix).to eq('/assets')
         expect(context.stylesheet_tag('a.css')).to eq(%Q(<link rel="stylesheet" href="/assets/a.css">))
-#        expect(Sprockets::Helpers.stylesheet_tag).to eq(%Q(<link rel="stylesheet" href="#{File.join(c, 'assets/a.css')}">))
-
 
       end # context
     end #it
 
     it 'initizalizes sprockets-helpers in production' do
-      pending("once storage is tested, come back and test that links are being generated with aws")
-#      within_construct do |c|
-    end
-
+      within_construct do |c|
+        ENV.stub(:[]).with('RACK_ENV').and_return("production")
+        
+      end # construct
+    end # it
 
   end # describe
-
 
   describe 'custom configuration' do
 
@@ -145,12 +150,12 @@ describe CloudCrooner do
       pending('stuff happens')
     end
 
-    it 'can disable syncing' do
+    it 'can disable remote asset host' do
       pending("calling sync should do nothing, and helpers should generate links pointing to public")
     end
 
-    it "looks for compiled assets in public when syncing is disabled in prod" do
-      CloudCrooner.sync_enabled = false
+    it "looks for compiled assets in public when remote is disabled in prod" do
+      CloudCrooner.remote_enabled = false
       ENV.stub(:[]).with("RACK_ENV").and_return("production")
       expect(CloudCrooner.asset_paths).to eq(%w(public/assets)) 
     end

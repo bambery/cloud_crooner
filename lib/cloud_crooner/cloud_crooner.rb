@@ -69,7 +69,7 @@ module CloudCrooner
     attr_writer :sprockets
 
     def manifest
-      @manifest ||= Sprockets::Manifest.new(File.join(public_folder, prefix))
+      @manifest ||= Sprockets::Manifest.new(sprockets, File.join(public_folder, prefix))
     end
     attr_writer :manifest
 
@@ -186,7 +186,8 @@ module CloudCrooner
     end
 
     def asset_host
-      "s3-#{region}.amazonaws.com/#{bucket_name}"
+      @asset_host ||= "#{bucket_name}.s3.amazonaws.com" 
+      #"s3-#{region}.amazonaws.com/#{bucket_name}"
     end
 
   end

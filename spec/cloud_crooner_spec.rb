@@ -124,6 +124,7 @@ describe CloudCrooner do
     it 'initializes sprockets-helpers in development' do
       within_construct do |c|
         c.file 'assets/a.css'
+        CloudCrooner.configure_sprockets_helpers
         
         expect(Sprockets::Helpers.prefix).to eq('/assets')
         expect(context.stylesheet_tag('a.css')).to eq(%Q(<link rel="stylesheet" href="/assets/a.css">))
@@ -133,7 +134,14 @@ describe CloudCrooner do
 
     it 'initizalizes sprockets-helpers in production' do
       within_construct do |c|
+        c.file 'assets/a.css'
+        stub_env_vars
         ENV.stub(:[]).with('RACK_ENV').and_return("production")
+        CloudCrooner.configure_sprockets_helpers
+        CloudCrooner.manifest.compile('a.css')
+
+        expect(context.asset_path('a.css')).to eq("http://my-bucket.s3.amazonaws.com/assets/#{CloudCrooner.sprockets['a.css'].digest_path}")
+
         
       end # construct
     end # it

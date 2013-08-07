@@ -34,7 +34,10 @@ RSpec.configure do |rconf|
 
 
   def stub_env_vars
-
+    ENV.stub(:has_key?).and_return(false)
+    ENV.stub(:[]).and_return(nil)
+    ENV.stub(:[]).with('AWS_BUCKET_NAME').and_return('my-bucket')
+    ENV.stub(:has_key?).with('AWS_BUCKET_NAME').and_return(true)
     ENV.stub(:[]).with('AWS_REGION').and_return('eu-west-1')
     ENV.stub(:has_key?).with('AWS_REGION').and_return(true)
     ENV.stub(:[]).with('AWS_ACCESS_KEY_ID').and_return('asdf123')

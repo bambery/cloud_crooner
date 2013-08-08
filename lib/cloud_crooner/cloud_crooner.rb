@@ -41,7 +41,7 @@ module CloudCrooner
           if remote_enabled?
             config.asset_host = asset_host
           else  
-            config.public_path = public_path
+            config.public_path = public_folder 
           end
         end
         config.environment = sprockets
@@ -51,11 +51,11 @@ module CloudCrooner
 
     def remote_enabled?
     # Disable this in prod if you want to serve compiled assets locally. 
-      @enabled.nil? ? (@enabled = true) : @enabled
+      @remote_enabled.nil? ? (@remote_enabled = true) : @remote_enabled
     end
 
     def remote_enabled= (val)
-      @enabled = val if [ true, false ].include?(val)
+      @remote_enabled = val if [ true, false ].include?(val)
     end
 
 

@@ -141,14 +141,12 @@ describe CloudCrooner do
         CloudCrooner.manifest.compile('a.css')
 
         expect(context.asset_path('a.css')).to eq("http://my-bucket.s3.amazonaws.com/assets/#{CloudCrooner.sprockets['a.css'].digest_path}")
-
-        
       end # construct
     end # it
 
   end # describe
 
-  describe 'custom configuration' do
+  describe 'custom configuration', :moo => true do
 
     it 'accepts a custom prefix' do
       pending('boo')
@@ -162,15 +160,46 @@ describe CloudCrooner do
       pending("calling sync should do nothing, and helpers should generate links pointing to public")
     end
 
+    it 'initializes sprockets-helpers when remote is disabled' do
+      within_construct do |c|
+        # compile the manifest and asset in dev
+        c.file 'assets/a.css'
+        c.directory 'public/assets'
+        manifest = Sprockets::Manifest.new(CloudCrooner.sprockets, 'public/assets')
+        CloudCrooner.manifest = manifest
+        CloudCrooner.manifest.compile('a.css')
+
+        # reload the app & helpers in production
+        p "woo"
+        p Sprockets::Helpers.instance_variables
+        reload_crooner
+
+        ENV.stub(:[]).with('RACK_ENV').and_return('production')
+        CloudCrooner.configure do |config|
+          config.manifest = manifest
+          config.remote_enabled = false
+        end
+
+        expect(context.asset_path('a.css')).to eq("/assets/#{CloudCrooner.manifest.assets['a.css']}")
+      end
+    end
+
     it "looks for compiled assets in public when remote is disabled in prod" do
       CloudCrooner.remote_enabled = false
       ENV.stub(:[]).with("RACK_ENV").and_return("production")
       expect(CloudCrooner.asset_paths).to eq(%w(public/assets)) 
     end
-
    
     it 'accepts a custom manifest' do
-      pending('more stuff')
+      within_construct do |c|
+        manifest = Sprockets::Manifest.new(CloudCrooner.sprockets, 'foo/bar')
+        CloudCrooner.configure do |config|
+          config.manifest = manifest
+        end
+
+        expect(CloudCrooner.manifest.dir).to eq(File.join(c,'foo/bar'))
+
+      end
     end
 
   end # describe

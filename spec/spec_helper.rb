@@ -12,7 +12,10 @@ RSpec.configure do |rconf|
     # need to unset the class instance variables
     Object.send(:remove_const, 'CloudCrooner')
     load 'cloud_crooner/cloud_crooner.rb'
-  end
+    Sprockets::Helpers.instance_variables.each do |var|
+      Sprockets::Helpers.instance_variable_set var, nil
+    end
+   end
 
 #  def clear_class_instance
 #    CloudCrooner.instance_variable_set :@config, nil

@@ -166,7 +166,8 @@ describe CloudCrooner do
     end
 
     it 'can disable remote asset host' do
-      pending("calling sync should do nothing, and helpers should generate links pointing to public")
+      CloudCrooner.remote_enabled = false
+      expect(CloudCrooner.remote_enabled?).to be_false
     end
 
     it 'initializes sprockets-helpers when remote is disabled' do
@@ -199,9 +200,92 @@ describe CloudCrooner do
         end
 
         expect(CloudCrooner.manifest.dir).to eq(File.join(c,'foo/bar'))
+      end # construct
+    end # it
 
-      end
+    it 'accepts a list of assets to compile' do
+      within_construct do |c|
+        c.file 'assets/a.css'
+        c.file 'assets/b.css'
+        c.file 'assets/c.css'
+
+        CloudCrooner.assets_to_compile = %w(a.css b.css)
+        expect(CloudCrooner.assets_to_compile).to eq(%w(a.css b.css))
+      end # construct
+    end # it
+
+    it "allows bucket to be set in config and overwrites ENV setting" do
+      ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return("test-bucket")
+      ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(true)
+      CloudCrooner.bucket_name = "foo_bucket"
+
+      expect(CloudCrooner.bucket_name).to eq("foo_bucket")
     end
+
+    it "allows bucket to be set in config if none in env" do
+      CloudCrooner.bucket_name= "bar_bucket"
+
+      ENV.stub(:[]).with("AWS_BUCKET_NAME").and_return(nil)
+      ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(false)
+      expect(CloudCrooner.bucket_name).to eq("bar_bucket")
+    end # it
+
+    it "allows region to be set in config if none in env" do
+      CloudCrooner.region = "us-west-2"
+
+      expect(CloudCrooner.region).to eq("us-west-2")
+    end
+
+    it "allows region to be set in config and overwrites ENV setting" do
+      ENV.stub(:[]).with("AWS_REGION").and_return("eu-west-1")
+      ENV.stub(:has_key?).with("AWS_REGION").and_return(true)
+      CloudCrooner.region = "us-west-2"
+
+      expect(CloudCrooner.region).to eq("us-west-2")
+    end
+
+    it "errors if config region is not valid" do
+      expect{CloudCrooner.region = "el-dorado"}.to raise_error(CloudCrooner::FogSettingError)
+    end
+
+    it "allows aws_access_key_id to be set in config and overwrite ENV" do
+      ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return("asdf123")
+      ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(true)
+      CloudCrooner.aws_access_key_id = "lkjh0987"
+
+      expect(CloudCrooner.aws_access_key_id).to eq("lkjh0987")
+    end
+
+    it "allows aws_access_key_id to be set in config if none in env" do
+      ENV.stub(:[]).with("AWS_ACCESS_KEY_ID").and_return(nil)
+      ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(false)
+      CloudCrooner.aws_access_key_id = "lkjh0987"
+
+      expect(CloudCrooner.aws_access_key_id).to eq("lkjh0987")
+    end
+
+    it "allows aws_secret_access_key to be set in config and overwrite ENV" do
+      ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return("secret")
+      ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(true)
+      CloudCrooner.aws_secret_access_key = "terces"
+
+      expect(CloudCrooner.aws_secret_access_key).to eq("terces")
+    end
+
+    it "allows secret access key to be set in config when ENV is empty" do
+      ENV.stub(:[]).with("AWS_SECRET_ACCESS_KEY").and_return(nil)
+      ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(false)
+      CloudCrooner.aws_secret_access_key = "terces"
+
+      expect(CloudCrooner.aws_secret_access_key).to eq("terces")
+    end
+
+    it "sets the number of backups to keep" do
+      CloudCrooner.configure{|config| config.backups_to_keep= 5}
+      
+      expect(CloudCrooner.backups_to_keep).to eq(5)
+    end
+
 
   end # describe
   

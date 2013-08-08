@@ -19,12 +19,7 @@ describe CloudCrooner do
       expect(CloudCrooner.remote_enabled?).to be_true
     end
 
-    it "defaults to looking for assets in 'assets' in prod" do
-      ENV.stub(:[]).with('RACK_ENV').and_return('production')
-      expect(CloudCrooner.asset_paths).to eq(%w(assets))
-    end
-
-    it "defaults to looking for assets in 'assets' in dev" do
+    it "defaults to looking for assets in '/assets'" do
       expect(CloudCrooner.asset_paths).to eq(%w(assets))
     end
 
@@ -146,14 +141,28 @@ describe CloudCrooner do
 
   end # describe
 
-  describe 'custom configuration', :moo => true do
+  describe 'custom configuration' do
 
     it 'accepts a custom prefix' do
-      pending('boo')
-    end
+      within_construct do |c|
+        CloudCrooner.configure do |config|
+          config.prefix = "meow"
+        end
+        expect(CloudCrooner.prefix).to eq("meow")
+        expect(Sprockets::Helpers.prefix).to eq("/meow")
+        expect(CloudCrooner.manifest.dir).to eq(File.join(c, "public/meow"))
+      end #context
+    end #it
 
     it 'adds specified asset paths to load path' do
-      pending('stuff happens')
+      within_construct do |c|
+        c.file 'foo/bar.css'
+        CloudCrooner.configure do |config|
+          config.asset_paths = (%w(foo assets))
+        end
+
+        expect(CloudCrooner.sprockets['bar.css']).to be_an_instance_of(Sprockets::BundledAsset) 
+      end
     end
 
     it 'can disable remote asset host' do
@@ -170,8 +179,6 @@ describe CloudCrooner do
         CloudCrooner.manifest.compile('a.css')
 
         # reload the app & helpers in production
-        p "woo"
-        p Sprockets::Helpers.instance_variables
         reload_crooner
 
         ENV.stub(:[]).with('RACK_ENV').and_return('production')
@@ -184,12 +191,6 @@ describe CloudCrooner do
       end
     end
 
-    it "looks for compiled assets in public when remote is disabled in prod" do
-      CloudCrooner.remote_enabled = false
-      ENV.stub(:[]).with("RACK_ENV").and_return("production")
-      expect(CloudCrooner.asset_paths).to eq(%w(public/assets)) 
-    end
-   
     it 'accepts a custom manifest' do
       within_construct do |c|
         manifest = Sprockets::Manifest.new(CloudCrooner.sprockets, 'foo/bar')

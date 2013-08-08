@@ -157,12 +157,8 @@ module CloudCrooner
     def asset_paths
     # logical paths to assets for use with Sprockets
     # default: everything under the prefix dir 
-    # if remote is disabled, in prod it will default to public_folder/prefix to serve local static assets. 
-    # note that if remote is enabled in prod that asset paths will be added, but the link helpers bypass sprockets and grab the manifest links, and will only fall back to the paths if the asset is not found in the manifest. 
-      if ENV['RACK_ENV'] == 'production' && !remote_enabled?
-        @asset_paths ||= [public_folder + '/' + prefix]
-      end
-        @asset_paths ||= [prefix] 
+    # note that if remote is enabled in prod, asset paths will be added, but the link helpers bypass sprockets and grab the manifest links, and will only fall back to the paths if the asset is not found in the manifest. 
+      @asset_paths ||= [prefix] 
     end
     attr_writer :asset_paths
 

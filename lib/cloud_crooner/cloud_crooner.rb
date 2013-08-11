@@ -226,11 +226,11 @@ end
 #      @config ||= Config.new
 #      yield @config
 #    end
-#
-#    def log(msg)
-#      $stdout.puts msg
-#    end
-#
+
+    def log(msg)
+      $stdout.puts msg
+    end
+
 #    def storage
 #        @storage ||= Storage.new(self.config)
 #    end

@@ -105,10 +105,10 @@ RSpec.configure do |rconf|
 #        end
 #    end
 #
-#  def uncompiled_assets_dir(construct)
-#    "#{construct}" + "/assets"
-#  end
-#
+  def uncompiled_assets_dir(construct)
+    "#{construct}" + "/assets"
+  end
+
   def mock_fog(storage)
     Fog.mock!
     storage.connection.directories.create(

@@ -49,6 +49,10 @@ module CloudCrooner
       end
     end
 
+    def storage
+      @storage ||= Storage.new
+    end
+
     def remote_enabled?
     # Disable this in prod if you want to serve compiled assets locally. 
       @remote_enabled.nil? ? (@remote_enabled = true) : @remote_enabled
@@ -57,7 +61,6 @@ module CloudCrooner
     def remote_enabled= (val)
       @remote_enabled = val if [ true, false ].include?(val)
     end
-
 
     def sprockets
       if @sprockets.nil?
@@ -175,9 +178,6 @@ module CloudCrooner
       options = { :provider => provider, :aws_access_key_id => aws_access_key_id, :aws_secret_access_key => aws_secret_access_key, :region => region }
     end
 
-
-    end
-
     private
 
     def provider
@@ -190,7 +190,6 @@ module CloudCrooner
 
     def asset_host
       @asset_host ||= "#{bucket_name}.s3.amazonaws.com" 
-      #"s3-#{region}.amazonaws.com/#{bucket_name}"
     end
 
   end

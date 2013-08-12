@@ -18,18 +18,6 @@ RSpec.configure do |rconf|
     end
    end
 
-#  def clear_class_instance
-#    CloudCrooner.instance_variable_set :@config, nil
-#    CloudCrooner.instance_variable_set :@storage, nil
-#  end
-#
-#  def sprockets_env
-#    @sprockets_env ||= Sprockets::Environment.new.tap do |env|
-#      env.append_path 'assets'
-#    end
-#  end
-
-
   # used for testing sprockets-helpers
   def context(logical_path = 'application.js', pathname = nil)
     pathname ||= Pathname.new(File.join('assets', logical_path)).expand_path

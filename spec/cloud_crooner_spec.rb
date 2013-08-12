@@ -286,8 +286,9 @@ describe CloudCrooner do
       expect(CloudCrooner.backups_to_keep).to eq(5)
     end
 
-
   end # describe
+
+
   
 #  describe 'registering the gem' do
 #    context 'without manifest' do
@@ -344,33 +345,28 @@ describe CloudCrooner do
 #    end # context 
 #  end # describe 
 #
-#  describe "compiling assets" do
-#    it 'compiles assets' do
-#      within_construct do |c|
-#        mock_app(c)
-#        CloudCrooner.config.assets = ['a.css', 'b.css']
-#
-#        (CloudCrooner.storage.local_compiled_assets).should == [] 
-#
-#        CloudCrooner.compile_sprockets_assets
-#
-#        expect(CloudCrooner.storage.local_compiled_assets).to eq(['assets/' +sprockets_env['a.css'].digest_path, 'assets/' + sprockets_env['b.css'].digest_path])
-#      end # construct
-#    end # it
-#  end
-#  describe "foo bar baz" do
-#    it 'syncs assets to the cloud', :moo => true do
-#      within_construct do |f|
-#
-#        mock_app(f)
-#        CloudCrooner.config.assets = ['a.css', 'b.css']
-#        mock_fog(CloudCrooner.storage)
-#        p "the config id in test #{CloudCrooner.config.object_id}"
-#        CloudCrooner.sync
-#
-#        expect(CloudCrooner.storage.local_equals_remote?).to be_true
-#      end # construct
-#    end # it
+  it 'compiles assets' do
+    within_construct do |c|
+      mock_environment(c)
+      CloudCrooner.assets_to_compile = ['a.css', 'b.css']
+      (CloudCrooner.storage.local_compiled_assets).should == [] 
+      CloudCrooner.compile_sprockets_assets
+
+      expect(CloudCrooner.storage.local_compiled_assets).to eq(['assets/' + CloudCrooner.sprockets['a.css'].digest_path, 'assets/' + CloudCrooner.sprockets['b.css'].digest_path])
+    end # construct
+  end # it
+
+  it 'syncs assets to the cloud', :moo => true do
+    within_construct do |c|
+      mock_environment(c)
+      CloudCrooner.assets_to_compile = ['a.css', 'b.css']
+      mock_fog(CloudCrooner.storage)
+      CloudCrooner.sync
+
+      expect(CloudCrooner.storage.local_equals_remote?).to be_true
+    end # construct
+  end # it
+
   after(:each) do
     reload_crooner
   end

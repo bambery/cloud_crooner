@@ -4,15 +4,6 @@ require 'sprockets-helpers'
 module CloudCrooner
 
   class FogSettingError < StandardError; end
-#  class MissingRequiredSetting < StandardError
-#    def initialize(name)
-#      @name = name
-#    end
-#
-#    def message 
-#      "Your app is missing a required setting: #{@name.to_s}"
-#    end
-#  end
 
     VALID_AWS_REGIONS = %w(
       us-west-2
@@ -178,6 +169,27 @@ module CloudCrooner
       options = { :provider => provider, :aws_access_key_id => aws_access_key_id, :aws_secret_access_key => aws_secret_access_key, :region => region }
     end
 
+    def compile_sprockets_assets
+      manifest.compile(*self.assets_to_compile)
+    end
+
+    def clean_sprockets_assets
+      manifest.clean(backups_to_keep)
+    end
+
+    def sync
+      compile_sprockets_assets
+      clean_sprockets_assets
+
+      storage.upload_files
+      storage.clean_remote
+
+    end
+
+    def log(msg)
+      $stdout.puts msg
+    end
+
     private
 
     def provider
@@ -194,71 +206,4 @@ module CloudCrooner
 
   end
 end
-
-#    def registered(app)
-#      # create a manifest if there isn't one
-#      app.set :manifest, Proc.new { Sprockets::Manifest.new( sprockets, File.join( public_folder, assets_prefix )) }  unless app.settings.respond_to?(:manifest)
-#      @config = Config.new
-#      # these settings depend on the app
-#      with_setting(app, :assets_prefix)  { |value| config.prefix = value }
-#      with_setting(app, :manifest)       { |value| config.local_compiled_assets_dir = value.dir }
-#      with_setting(app, :manifest)       { |value| config.manifest = value }
-#      with_setting(app, :public_folder) { |value| config.public_path = value }
-#    end
-#
-#    def with_setting(app, name, &proc)
-#      raise MissingRequiredSetting.new(name) unless app.settings.respond_to?(name)
-#
-#      val = app.settings.__send__(name)
-#      yield val unless val.nil? 
-#    end
-#
-#    def config=(data)
-#      @config = data
-#    end
-#
-#    def config
-#      @config ||= Config.new
-#      @config
-#    end
-#
-#    def configure(&proc)
-#      @config ||= Config.new
-#      yield @config
-#    end
-
-    def log(msg)
-      $stdout.puts msg
-    end
-
-#    def storage
-#        @storage ||= Storage.new(self.config)
-#    end
-#    
-#    def compile_sprockets_assets
-#      self.config.manifest.compile(*self.config.assets)
-#    end
-#
-#    def clean_sprockets_assets
-#      self.config.manifest.clean(self.config.backups_to_keep)
-#    end
-#
-#    def sync
-#      self.compile_sprockets_assets
-#      self.clean_sprockets_assets
-#
-#      self.storage.upload_files
-#
-#      if self.config.clean_up_remote?
-#        self.storage.clean_remote
-#      end
-#    end
-#
-#  end
-#end
-
-
-#  end
-#end
-#
 

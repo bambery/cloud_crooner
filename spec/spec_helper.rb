@@ -107,6 +107,6 @@ RSpec.configure do |rconf|
    stub_env_vars
    sample_assets(c)
   end
-#
+
 end
 

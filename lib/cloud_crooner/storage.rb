@@ -35,11 +35,6 @@ module CloudCrooner
       end
     end
 
-    def local_equals_remote? 
-      # the remote files are not guaranteed to be ordered
-      frequency(local_compiled_assets) == frequency(remote_assets)
-    end
-
     def log(msg)
       CloudCrooner.log(msg)
     end
@@ -105,14 +100,5 @@ module CloudCrooner
       end
     end
     
-    private 
-
-    def frequency(arr)
-      # http://stackoverflow.com/questions/9095017/comparing-two-arrays-in-ruby
-      p = Hash.new(0)
-      arr.each{ |v| p[v] += 1 }
-      p
-    end
-
   end
 end

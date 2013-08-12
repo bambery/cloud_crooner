@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'cloud_crooner/storage'
 require 'securerandom'
 
 describe CloudCrooner::Storage do
@@ -186,7 +185,7 @@ describe CloudCrooner::Storage do
         CloudCrooner.manifest.compile(Dir[uncompiled_assets_dir(c) + "/*"])
         CloudCrooner.manifest.files.count.should eq(7)
         @storage.upload_files
-        expect(@storage.local_equals_remote?).to be_true 
+        expect(local_equals_remote?(@storage)).to be_true 
         
       end # construct
     end #it 
@@ -204,7 +203,7 @@ describe CloudCrooner::Storage do
 
         @storage.upload_file(File.join(@storage.instance_variable_get(:@prefix), CloudCrooner.sprockets['a.js'].digest_path))
         @storage.upload_files
-        expect(@storage.local_equals_remote?).to be_true 
+        expect(local_equals_remote?(@storage)).to be_true 
       end # construct
     end # it
 

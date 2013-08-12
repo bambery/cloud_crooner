@@ -75,24 +75,18 @@ RSpec.configure do |rconf|
     }.call(construct)
   end
 
-#  def mock_app(c)
-#      clear_class_instance
-#      sample_assets(c)
-#      # need to specify manifest so construct will clean it up
-#      public_folder = c.directory 'public'
-#      p public_folder
-#      manifest_file = c.file 'public/assets/manifest.json'
-#      p manifest_file
-#
-#        app = Class.new(Sinatra::Base) do
-#          set :sprockets, sprockets_env 
-#          set :assets_prefix, '/assets'
-#          set :manifest, Sprockets::Manifest.new(sprockets_env, manifest_file) 
-#          set :public_folder, public_folder
-#          register CloudCrooner
-#        end
-#    end
-#
+  def local_equals_remote?(storage) 
+    # the remote files are not guaranteed to be ordered
+    frequency(storage.local_compiled_assets) == frequency(storage.remote_assets)
+  end
+
+  def frequency(arr)
+    # http://stackoverflow.com/questions/9095017/comparing-two-arrays-in-ruby
+    p = Hash.new(0)
+    arr.each{ |v| p[v] += 1 }
+    p
+  end
+
   def uncompiled_assets_dir(construct)
     "#{construct}" + "/assets"
   end

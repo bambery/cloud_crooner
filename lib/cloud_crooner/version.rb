@@ -1,3 +1,3 @@
 module CloudCrooner
-  VERSION = "0.0.1.pre"
+  VERSION = "0.0.1.beta2"
 end

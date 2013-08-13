@@ -165,11 +165,18 @@ module CloudCrooner
     end
 
     def compile_sprockets_assets
+      # compile the assets in the sprockets load path. Outputs to directory of manifest. Updates the manifest
       manifest.compile(*self.assets_to_compile)
     end
 
     def clean_sprockets_assets
+      # if there are more backups than the requested number, delete the oldest from the file system and update the manifest 
       manifest.clean(backups_to_keep)
+    end
+
+    def clobber_sprockets_assets
+      # delete the manifest directory and everything in it
+      manifest.clobber
     end
 
     def sync

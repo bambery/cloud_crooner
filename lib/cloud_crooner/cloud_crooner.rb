@@ -15,7 +15,6 @@ module CloudCrooner
       sa-east-1
     )
 
-
   class << self
 
     def configure(&proc)
@@ -55,7 +54,7 @@ module CloudCrooner
 
     def sprockets
       if @sprockets.nil?
-        @sprockets = Sprockets::Environment.new
+        @sprockets = Sprockets::Environment.new { |env| env.logger = Logger.new($stdout) }
         asset_paths.each {|path| @sprockets.append_path(path)}
       end
       return @sprockets
@@ -160,10 +159,6 @@ module CloudCrooner
       @backups_to_keep ||= 2
     end
     attr_writer :backups_to_keep
-
-    def log(msg)
-      $stdout.puts msg
-    end
 
     def fog_options
       options = { :provider => provider, :aws_access_key_id => aws_access_key_id, :aws_secret_access_key => aws_secret_access_key, :region => region }

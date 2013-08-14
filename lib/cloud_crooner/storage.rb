@@ -89,7 +89,7 @@ module CloudCrooner
     end
 
     def delete_remote_asset(f)
-      log "Deleting #{f} from remote"
+      log "Deleting #{f.key} from remote"
       f.destroy
     end
 

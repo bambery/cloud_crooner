@@ -28,6 +28,7 @@ module CloudCrooner
         if ENV['RACK_ENV'] == "production"
           config.manifest = manifest
           config.digest = true
+          config.debug = false
           if remote_enabled?
             config.asset_host = asset_host
           else  

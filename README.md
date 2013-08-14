@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Configuration
 
-Cloud Crooner has many configuration options which can be set in a configure block: 
+Cloud Crooner has many configuration options which can be set in a configure block. [Explicit configuration is optional.](#no_config)
 
     CloudCrooner.configure do |config|
       config.prefix = '/assets'
@@ -53,13 +53,13 @@ Cloud Crooner has many configuration options which can be set in a configure blo
 
 `aws_secret_access_key` - aws credentials. 
 
-### No Configuration
+### <a id= "no_config"></a>No Configuration
 
 If you're keen to run everything on defaults, you will still need to run one command in order to get the helpers working: 
 
     CloudCrooner.configure_sprockets_helpers
 
-Normally this is called at the end of the `CloudCrooner.configure` method.
+Normally this is called at the end of the `CloudCrooner.configure` method. This method also assumes you have put the S3 settings into ENV outside of the app.
 
 ### <a id="hooking_up"></a>Hooking Up With Your Amazon S3 Account
 

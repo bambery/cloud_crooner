@@ -43,7 +43,7 @@ Cloud Crooner has many configuration options which can be set in a configure blo
 `backups_to_keep` - the number of compiled asset backups to keep. Default is 2. When running the sync task, if an asset's content has changed, it will be recompiled. If there are already more than the set number of backups present, the oldest asset will be deleted locally, removed from the manifest, and deleted remotely.
 
 ### Amazon S3 settings and credentials
-[See "Hooking Up With Your Amazon S3 Account" for details.](#Hooking-Up-With-Your-Amazon-S3-Account)
+[See "Hooking Up With Your Amazon S3 Account" for details.](#hooking-up-with-your-amazon-s3-account)
 
 `bucket_name` - the name of your AWS S3 bucket. 
 

@@ -2,7 +2,7 @@
 
 Manage your Sinatra app's assets with [Sprockets](https://github.com/sstephenson/sprockets) and sync them with [Amazon S3](http://aws.amazon.com/s3/).
 
-Cloud Crooner will run a Sprockets instance and configure helpers for your views. Create a rake task to call the sync method to compile your assets and upload them to the cloud. The helpers will make sure you're pointing to the S3 assets in prod. Your assets will have appended to their names an MD5 hash of their contents which updates when your assets change, ensuring that your users will always be served the freshest assets without needing to worry about expiring caches. 
+Cloud Crooner will run a Sprockets instance and configure helpers for your views. Create a rake task to compile your assets and upload them to the cloud, and use helper methods to make sure you're always pointing to the right asset paths for your environment. In prod, your assets will have appended to their names an MD5 hash of their contents which updates when your assets change, ensuring that your users will always be served the freshest assets without needing to worry about expiring caches. 
 
 ## Installation
 

@@ -30,7 +30,7 @@ Cloud Crooner has many configuration options which can be set in a configure blo
 
 `public_folder` - the public folder of your application. By default set to `/public`. If you are using a different public folder, you must set it here as well as in your application.
 
-`prefix` - the path from root where you keep your assets. By default it is `/assets`. Your compiled assets will be placed in `public_folder/prefix.` It will also be the psuedo-folder on S3 where your assets will be stored, so the paths will look something like `http://bucket-name.s3.amazonaws.com/prefix/filename`.
+`prefix` - the path from root where you keep your assets. By default it is `/assets`. Your compiled assets will be placed in `public_folder/prefix.` It will also be the pseudo-folder on S3 where your assets will be stored, so the paths will look something like `http://bucket-name.s3.amazonaws.com/prefix/filename`.
 
 `sprockets` - by default, this will be your Sprockets environment and it will load paths the config option `asset_paths`. 
 

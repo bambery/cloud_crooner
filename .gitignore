@@ -16,4 +16,5 @@ test/tmp
 test/version_tmp
 tmp
 *.swp
+tags
 spec/rspec_output.txt

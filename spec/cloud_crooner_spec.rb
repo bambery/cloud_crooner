@@ -292,27 +292,46 @@ describe CloudCrooner do
 
   end # describe
 
-  it 'compiles assets' do
-    within_construct do |c|
-      mock_environment(c)
-      CloudCrooner.assets_to_compile = ['a.css', 'b.css']
-      (CloudCrooner.storage.local_compiled_assets).should == [] 
-      CloudCrooner.compile_sprockets_assets
+  describe 'compiling and syncing assets' do
 
-      expect(CloudCrooner.storage.local_compiled_assets).to eq(['assets/' + CloudCrooner.sprockets['a.css'].digest_path, 'assets/' + CloudCrooner.sprockets['b.css'].digest_path])
-    end # construct
-  end # it
+    it 'compiles assets' do
+      within_construct do |c|
+        mock_environment(c)
+        CloudCrooner.assets_to_compile = ['a.css', 'b.css']
+        (CloudCrooner.storage.local_compiled_assets).should == [] 
+        CloudCrooner.compile_sprockets_assets
 
-  it 'syncs assets to the cloud', :moo => true do
-    within_construct do |c|
-      mock_environment(c)
-      CloudCrooner.assets_to_compile = ['a.css', 'b.css']
-      mock_fog(CloudCrooner.storage)
-      CloudCrooner.sync
+        expect(CloudCrooner.storage.local_compiled_assets).to eq(['assets/' + CloudCrooner.sprockets['a.css'].digest_path, 'assets/' + CloudCrooner.sprockets['b.css'].digest_path])
+      end # construct
+    end # it
 
-      expect(local_equals_remote?(CloudCrooner.storage)).to be_true
-    end # construct
-  end # it
+    it 'compiles and syncs assets to the cloud', :moo => true do
+      within_construct do |c|
+        mock_environment(c)
+        CloudCrooner.assets_to_compile = ['a.css', 'b.css']
+        mock_fog(CloudCrooner.storage)
+        CloudCrooner.sync
+
+        expect(local_equals_remote?(CloudCrooner.storage)).to be_true
+      end # construct
+    end # it
+
+    it 'compiles and does not sync assets if remote_enabled is false' do
+      within_construct do |c|
+        mock_environment(c)
+        CloudCrooner.configure do |config|
+          config.assets_to_compile = ['a.css', 'b.css']
+          config.remote_enabled = false
+        end
+        mock_fog(CloudCrooner.storage)
+        CloudCrooner.sync
+
+        expect(local_equals_remote?(CloudCrooner.storage)).to be_false
+      expect(CloudCrooner.storage.bucket.versions.first).to be_nil
+      end # construct
+    end # it 
+
+  end # describe
 
   after(:each) do
     reload_crooner

@@ -184,8 +184,10 @@ module CloudCrooner
       compile_sprockets_assets
       clean_sprockets_assets
 
-      storage.upload_files
-      storage.clean_remote
+      if remote_enabled?
+        storage.upload_files
+        storage.clean_remote
+      end
 
     end
 

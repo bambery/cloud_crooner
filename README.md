@@ -56,7 +56,7 @@ If you're keen to run everything on defaults, you will still need to run one com
 
     CloudCrooner.configure_sprockets_helpers
 
-Normally this is called at the end of the configure method.
+Normally this is called at the end of the `CloudCrooner.configure` method.
 
 ### <a id="hooking_up"></a>Hooking up with your Amazon S3 Account
 
@@ -105,11 +105,13 @@ In config.ru, require this file, and set up the following:
 
 You have to register the helpers in your application so they can find your assets:
 
-class App < Sinatra::Base
-  helpers do
-    include Sprockets::Helpers
-  end
-end
+    class App < Sinatra::Base
+      helpers do
+        include Sprockets::Helpers
+      end
+    end
+
+The helpers which you can use are [detailed below](#helpers). 
 
 To compile and upload the assets, in your rakefile:
 
@@ -132,6 +134,27 @@ Now on the command line, run `rake assets:sync` and the following will happen:
 Running your app in development mode will serve uncompiled assets locally (from `/assets`), and running your app in production mode will serve your compiled assets from S3. If you have `remote_assets` set to `false` and are in production mode, your compiled assets will be served from `public/assets`.
 
 If you want to precompile and upload your assets every time you spin up your app, you can put the configure block directly into config.ru and after config run CloudCrooner.sync.
+
+
+## <a id="helpers"></a> Helpers
+
+Helper methods are provided for use in your views using the [sprockets-helpers](https://github.com/petebrowne/sprockets-helpers) gem.  
+
+`stylesheet_tag` - put this in your views to insert an html tag referencing a stylesheet in the Sprockets load path. For example, if you have `/assets/stylesheets/application.scss` and have placed `assets/stylesheets` in the load path, you would write:
+    <%= stylesheet_tag 'application' %>
+and in dev it will compile to
+    <link rel="stylesheet" href="/assets/application.css">
+in prod it will compile to 
+    <link rel="stylesheet" href="http://my-bucket.s3.amazonaws.com/assets/application.css">
+
+`javascript_tag` - similar to `stylesheet_tag`
+
+`asset_tag` - similar to stylesheet, but you pass a block to generate a tag of your choosing. 
+    asset_tag('main.js') { |path| "<script src=#{path}></script>" }
+will generate
+    <script src=/main.js></script>
+
+`asset_path` - returns the path to an asset, no tag. 
 
 ## Notes About Sass and Sprockets
 

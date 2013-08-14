@@ -125,6 +125,14 @@ Running your app in development mode will serve uncompiled assets locally (from 
 
 If you want to precompile and upload your assets every time you spin up your app, you can put the configure block directly into config.ru and after config run CloudCrooner.sync.
 
+## Notes About Sass and Sprockets
+
+If you are using sass files, you should use the [ sprockets-sass ](https://github.com/petebrowne/sprockets-sass) and [ sass ](https://github.com/nex3/sass)  gems to help Sprockets cope (sprockets-sass still necessary as of 06/30/13 for functional Sinatra @imports, email me if this changes).
+
+Specifically for Sass files, do not use the Sprockets directives - use @include. See here for more details:
+
+[Structure Your Sass Files with @import](http://pivotallabs.com/structure-your-sass-files-with-import/)
+
 ## Contributing
 
 If there's a feature you'd like to see, when you create an issue, please supply a valid use case. If you'd like to fix a bug or add a feature yourself, please update relevant tests before submitting a pull request. 

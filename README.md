@@ -53,7 +53,7 @@ Cloud Crooner has many configuration options which can be set in a configure blo
 
 `aws_secret_access_key` - aws credentials. 
 
-### <a id= "no_config"></a>No Configuration
+### <a id="no_config"></a>No Configuration
 
 If you're keen to run everything on defaults, you will still need to run one command in order to get the helpers working: 
 

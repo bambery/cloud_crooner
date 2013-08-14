@@ -133,6 +133,10 @@ Specifically for Sass files, do not use the Sprockets directives - use @include.
 
 [Structure Your Sass Files with @import](http://pivotallabs.com/structure-your-sass-files-with-import/)
 
+You can also set any sass (or other supported processor) specific options in your config.ru:
+      Sprockets::Sass.options[:style] = :compressed
+See Sprockets for details.
+
 ## Contributing
 
 If there's a feature you'd like to see, when you create an issue, please supply a valid use case. If you'd like to fix a bug or add a feature yourself, please update relevant tests before submitting a pull request. 

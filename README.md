@@ -20,7 +20,7 @@ Or install it yourself as:
 
 ## Configuration
 
-Cloud Crooner has many configuration options which can be set in a configure block. [Explicit configuration is optional.](#no_config)
+Cloud Crooner has many configuration options which can be set in a configure block. [Explicit configuration is optional.](#no-configuration)
 
     CloudCrooner.configure do |config|
       config.prefix = '/assets'
@@ -43,7 +43,7 @@ Cloud Crooner has many configuration options which can be set in a configure blo
 `backups_to_keep` - the number of compiled asset backups to keep. Default is 2. When running the sync task, if an asset's content has changed, it will be recompiled. If there are already more than the set number of backups present, the oldest asset will be deleted locally, removed from the manifest, and deleted remotely.
 
 ### Amazon S3 settings and credentials
-[See below for details.](#hooking_up )
+[See "Hooking Up With Your Amazon S3 Account" for details.](#Hooking-Up-With-Your-Amazon-S3-Account)
 
 `bucket_name` - the name of your AWS S3 bucket. 
 
@@ -53,7 +53,7 @@ Cloud Crooner has many configuration options which can be set in a configure blo
 
 `aws_secret_access_key` - aws credentials. 
 
-### <a id="no_config"></a>No Configuration
+### No Configuration
 
 If you're keen to run everything on defaults, you will still need to run one command in order to get the helpers working: 
 
@@ -61,7 +61,7 @@ If you're keen to run everything on defaults, you will still need to run one com
 
 Normally this is called at the end of the `CloudCrooner.configure` method. This method also assumes you have put the S3 settings into ENV outside of the app.
 
-### <a id="hooking_up"></a>Hooking Up With Your Amazon S3 Account
+### Hooking Up With Your Amazon S3 Account
 
 After you have created an S3 account, [you will will be provided with an "access key id" and a "secret access key"](https://console.aws.amazon.com/iam/home?#security_credential). You will also need your bucket name and the bucket's region. One of the ways to find the region is by going to the [S3 console](https://console.aws.amazon.com/s3/) and checking the end of the URL: it will look something like us-west-1. Cloud Crooner will look for your AWS credentials in your ENV by default. _Do not put your credentials anywhere they can be checked into source control._ I would suggest loading them into the env with your bash login scripts. The env keys that will be checked by default are:
 
@@ -139,7 +139,7 @@ Running your app in development mode will serve uncompiled assets locally (from 
 If you want to precompile and upload your assets every time you spin up your app, you can put the configure block directly into config.ru and after config run CloudCrooner.sync.
 
 
-## <a id="helpers"></a> Helpers
+## Helpers
 
 Helper methods are provided for use in your views using the [sprockets-helpers](https://github.com/petebrowne/sprockets-helpers) gem.  
 

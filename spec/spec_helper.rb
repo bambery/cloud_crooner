@@ -8,6 +8,16 @@ require 'sprockets-helpers'
 RSpec.configure do |rconf|
   rconf.include Construct::Helpers
 
+  # don't pollute stdout with output during tests
+  original_stdout = $stdout
+  rconf.before(:all) do 
+  # Redirect stderr and stdout
+    $stdout = File.new(File.join(File.dirname(__FILE__), 'rspec_output.txt'), 'w')
+  end
+  rconf.after(:all) do 
+    $stdout = original_stdout
+  end
+
   def reload_crooner
     # need to unset the class instance variables
     Object.send(:remove_const, 'CloudCrooner')

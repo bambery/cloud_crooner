@@ -63,21 +63,25 @@ describe CloudCrooner do
   describe 'errors if missing required settings' do
     it "errors if region is not assigned" do
       ENV.stub(:[]).and_return(nil)
+      ENV.stub(:has_key?).with("AWS_REGION").and_return(false)
       expect{CloudCrooner.region}.to raise_error(CloudCrooner::FogSettingError, "AWS Region must be set in ENV or in configure block")
     end
 
     it "errors if the bucket is not set" do
       ENV.stub(:[]).and_return(nil)
+      ENV.stub(:has_key?).with("AWS_BUCKET_NAME").and_return(false)
       expect{CloudCrooner.bucket_name}.to raise_error(CloudCrooner::FogSettingError, "Bucket name must be set in ENV or configure block")
     end
 
     it "errors if aws access key id is unset" do
       ENV.stub(:[]).and_return(nil)
+      ENV.stub(:has_key?).with("AWS_ACCESS_KEY_ID").and_return(false)
       expect{CloudCrooner.aws_access_key_id}.to raise_error
     end
     
     it "errors if aws secret access key is unset" do
       ENV.stub(:[]).and_return(nil)
+      ENV.stub(:has_key?).with("AWS_SECRET_ACCESS_KEY").and_return(false)
       expect{CloudCrooner.aws_secret_access_key}.to raise_error
     end
 

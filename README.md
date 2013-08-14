@@ -103,6 +103,14 @@ In config.ru, require this file, and set up the following:
       run App # your application class name
     end
 
+You have to register the helpers in your application so they can find your assets:
+
+class App < Sinatra::Base
+  helpers do
+    include Sprockets::Helpers
+  end
+end
+
 To compile and upload the assets, in your rakefile:
 
     require './config/cloud_crooner_config.rb'

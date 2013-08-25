@@ -11,16 +11,24 @@ module CloudCrooner
       @manifest =    CloudCrooner.manifest 
     end
 
+    ##
+    # Creates a new Fog connection
+    #
     def connection
       @connection ||= Fog::Storage.new(@fog_options)
     end
 
+    ##
+    # Returns the remote assets
+    #
     def bucket
       @bucket ||= connection.directories.get(@bucket_name, :prefix => @prefix)
     end
 
+    ##
+    # Compiled assets prepended with prefix for comparison against remote
+    #
     def local_compiled_assets 
-      # compiled assets prepended with prefix for comparison against remote
       @manifest.files.keys.map {|f| File.join(@prefix, f)} 
     end
     
@@ -28,6 +36,9 @@ module CloudCrooner
       bucket.files.head(file)
     end
 
+    ##
+    # Upload all new files to the bucket
+    #
     def upload_files
       files_to_upload = local_compiled_assets.reject { |f| exists_on_remote?(f) }
       files_to_upload.each do |asset|
@@ -39,6 +50,10 @@ module CloudCrooner
       CloudCrooner.log(msg)
     end
 
+    ##
+    # Uploads a file to the bucket. Sets expires header to one year. If a 
+    # gzipped version of the file exists and is a smaller file size 
+    #
     def upload_file(f)
       # grabs the compiled asset from public_path
       full_file_path = File.join(File.dirname(@manifest.dir), f)
@@ -54,7 +69,6 @@ module CloudCrooner
 
       gzipped = "#{full_file_path}.gz" 
 
-      # if a gzipped version of the file exists and is a smaller file size than the original, upload that in place of the uncompressed file
       if File.exists?(gzipped)
         original_size = File.size(full_file_path)
         gzipped_size = File.size(gzipped)
@@ -77,9 +91,9 @@ module CloudCrooner
         })
         log "Uploading #{f}"
       end
-        # put in reduced redundancy option here later if desired
+      # put in reduced redundancy option here later if desired
 
-        file =  bucket.files.create( file )
+      file =  bucket.files.create( file )
     end
 
     def remote_assets
@@ -93,6 +107,10 @@ module CloudCrooner
       f.destroy
     end
 
+    ## 
+    # Analogue to CloudCrooner::cleansprockets_assets - deletes old backups 
+    # of assets
+    #
     def clean_remote
       to_delete = remote_assets - local_compiled_assets
       to_delete.each do |f|

@@ -36,47 +36,41 @@ module CloudCrooner
         case serve_assets
         when "remote"
           config.manifest = manifest
-          config.digest = digest 
           config.debug = false
           config.asset_host = asset_host
         when "local_static" 
           config.manifest = manifest
-          config.digest = digest 
-          config.debug - false
+          config.debug = false
           config.public_path = public_folder 
         end
         config.environment = sprockets
-        config.prefix = "/" + prefix
+        config.prefix = '/' + prefix
+        config.digest = digest 
       end
     end
 
-    ##
-    #  Returns the Storage instance
-    #
     def storage
       @storage ||= Storage.new
     end
     
     ##
     # Where to serve assets from
-    # * "local_dynamic" : default in dev and test - serves assets from sprockets
+    # * "local_dynamic" : default in dev and test - serves assets from 
+    #   sprockets
     # * "local_static"  : serves compiled assets from public_folder 
     # * "remote"        : default in prod - serves compiled assets from S3
     # 
     def serve_assets
-     if ENV['RACK_ENV'] == "production"
-        @serve_assets.nil ? @serve_assets = "remote" : @serve_assets
-      elsif @serve_assets.nil?
-        @serve_assets = "local_dynamic"
-      else
-        @serve_assets
+      if @serve_assets.nil?
+        ENV['RACK_ENV'] == 'production' ? (@serve_assets = 'remote') : (@serve_assets = 'local_dynamic')
       end
+      @serve_assets
     end
 
     def serve_assets= (val)
-      @serve_assets =  val if [ "local_dynamic", 
-                                "local_static", 
-                                "remote" ].include?(val)
+      (@serve_assets =  val) if [ 'local_dynamic', 
+                                'local_static', 
+                                'remote' ].include?(val)
     end
 
     ##
@@ -280,9 +274,6 @@ module CloudCrooner
 
     end
 
-    ##
-    # Output logging messages to stdout
-    #
     def log(msg)
       $stdout.puts msg
     end

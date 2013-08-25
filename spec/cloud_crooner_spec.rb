@@ -15,8 +15,16 @@ describe CloudCrooner do
       expect(CloudCrooner.public_folder).to eq("public")
     end
 
-    it 'defaults to remote enabled' do
-      expect(CloudCrooner.remote_enabled?).to be_true
+    it 'defaults to serving development assets dynamically' do
+      ENV.stub(:[]).with('RACK_ENV').and_return('development')
+
+      expect(CloudCrooner.serve_assets).to eq("local_dynamic")
+    end
+
+    it 'defaults to serving production assets remotely' do
+      ENV.stub(:[]).with("RACK_ENV").and_return("production")
+
+      expect(CloudCrooner.serve_assets).to eq("remote")
     end
 
     it "defaults to looking for assets in '/assets'" do
@@ -120,18 +128,18 @@ describe CloudCrooner do
        end # construct 
     end # it
 
-    it 'initializes sprockets-helpers in development' do
+    it 'initializes sprockets-helpers in development to serve dynamic assets' do
       within_construct do |c|
+        ENV.stub(:[]).with('RACK_ENV').and_return('development')
         c.file 'assets/a.css'
         CloudCrooner.configure_sprockets_helpers
         
-        expect(Sprockets::Helpers.prefix).to eq('/assets')
+        expect(CloudCrooner.send(:digest)).to be_false
         expect(context.stylesheet_tag('a.css')).to eq(%Q(<link rel="stylesheet" href="/assets/a.css">))
-
       end # context
     end #it
 
-    it 'initizalizes sprockets-helpers in production' do
+    it 'initizalizes sprockets-helpers in production to serve remote static assets' do
       within_construct do |c|
         c.file 'assets/a.css'
         stub_env_vars
@@ -139,7 +147,9 @@ describe CloudCrooner do
         CloudCrooner.configure_sprockets_helpers
         CloudCrooner.manifest.compile('a.css')
 
+        expect(CloudCrooner.send(:digest)).to be_true
         expect(context.asset_path('a.css')).to eq("http://my-bucket.s3.amazonaws.com/assets/#{CloudCrooner.sprockets['a.css'].digest_path}")
+
       end # construct
     end # it
 
@@ -169,32 +179,59 @@ describe CloudCrooner do
       end
     end
 
-    it 'can disable remote asset host' do
-      CloudCrooner.remote_enabled = false
-      expect(CloudCrooner.remote_enabled?).to be_false
-    end
-
-    it 'initializes sprockets-helpers when remote is disabled' do
+    it 'initializes sprockets-helpers when serving local static assets in prod' do
       within_construct do |c|
-        # compile the manifest and asset in dev
         c.file 'assets/a.css'
-        c.directory 'public/assets'
-        manifest = Sprockets::Manifest.new(CloudCrooner.sprockets, 'public/assets')
-        CloudCrooner.manifest = manifest
         CloudCrooner.manifest.compile('a.css')
-
-        # reload the app & helpers in production
-        reload_crooner
-
         ENV.stub(:[]).with('RACK_ENV').and_return('production')
-        CloudCrooner.configure do |config|
-          config.manifest = manifest
-          config.remote_enabled = false
-        end
+        
+        CloudCrooner.serve_assets = "local_static"
+        CloudCrooner.configure_sprockets_helpers
 
-        expect(context.asset_path('a.css')).to eq("/assets/#{CloudCrooner.manifest.assets['a.css']}")
+        expect(context.asset_path('a.css')).to eq("/assets/#{CloudCrooner.sprockets['a.css'].digest_path}")
       end
     end
+
+    it 'intializes sprockets-helpers when serving dynamic assets in prod' do
+      within_construct do |c|
+        c.file 'assets/a.css'
+        CloudCrooner.manifest.compile('a.css')
+        ENV.stub(:[]).with('RACK_ENV').and_return('production')
+        
+        CloudCrooner.serve_assets = "local_dynamic"
+        CloudCrooner.configure_sprockets_helpers
+
+        expect(context.stylesheet_tag('a.css')).to eq(%Q(<link rel="stylesheet" href="/assets/a.css">))
+      end
+    end
+
+    it 'initializes sprockets-helpers when serving local static assets in dev' do
+      within_construct do |c|
+        c.file 'assets/a.css'
+        CloudCrooner.manifest.compile('a.css')
+        ENV.stub(:[]).with('RACK_ENV').and_return('development')
+        
+        CloudCrooner.serve_assets = "local_static"
+        CloudCrooner.configure_sprockets_helpers
+
+        expect(context.asset_path('a.css')).to eq("/assets/#{CloudCrooner.sprockets['a.css'].digest_path}")
+      end
+    end
+
+    it 'initializes sprockets-helpers when serving remote assets in dev' do
+      within_construct do |c|
+        c.file 'assets/a.css'
+        stub_env_vars
+        ENV.stub(:[]).with('RACK_ENV').and_return("development")
+
+        CloudCrooner.serve_assets = 'remote'
+        CloudCrooner.configure_sprockets_helpers
+        CloudCrooner.manifest.compile('a.css')
+
+        expect(CloudCrooner.send(:digest)).to be_true
+        expect(context.asset_path('a.css')).to eq("http://my-bucket.s3.amazonaws.com/assets/#{CloudCrooner.sprockets['a.css'].digest_path}")
+      end # construct
+    end # it
 
     it 'accepts a custom manifest' do
       within_construct do |c|
@@ -305,10 +342,13 @@ describe CloudCrooner do
       end # construct
     end # it
 
-    it 'compiles and syncs assets to the cloud', :moo => true do
+    it 'compiles and syncs assets to the cloud' do
       within_construct do |c|
         mock_environment(c)
-        CloudCrooner.assets_to_compile = ['a.css', 'b.css']
+        CloudCrooner.configure do |config|
+          config.assets_to_compile = ['a.css', 'b.css']
+          config.serve_assets = "remote"
+        end
         mock_fog(CloudCrooner.storage)
         CloudCrooner.sync
 
@@ -321,7 +361,7 @@ describe CloudCrooner do
         mock_environment(c)
         CloudCrooner.configure do |config|
           config.assets_to_compile = ['a.css', 'b.css']
-          config.remote_enabled = false
+          config.serve_assets = 'local_static' 
         end
         mock_fog(CloudCrooner.storage)
         CloudCrooner.sync

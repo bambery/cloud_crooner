@@ -356,7 +356,7 @@ describe CloudCrooner do
       end # construct
     end # it
 
-    it 'compiles and does not sync assets if remote_enabled is false' do
+    it 'compiles and does not sync assets if serving local files' do
       within_construct do |c|
         mock_environment(c)
         CloudCrooner.configure do |config|

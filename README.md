@@ -26,9 +26,13 @@ Cloud Crooner has many configuration options which can be set in a configure blo
       config.prefix = '/assets'
     end
 
-`remote_enabled`  - true by default. When disabled, your assets will be served from your public folder instead of from S3. Only works in production. _Be aware that attempting to test this on your machine using rackup or thin will not work_. Rack does not serve files from `/public`. If you want to see static assets in action without messing with Rack internals, you must run [shotgun](https://github.com/rtomayko/shotgun) or something like it.
+`serve_assets`  - where and how to serve assets. You have three options:
 
-`public_folder` - the public folder of your application. By default set to `/public`. If you are using a different public folder, you must set it here as well as in your application.
+  * `local_dynamic` - default in test & dev environments. Serves assets locally with Sprockets, dynamically generating them. 
+  * `local_static` - serves compiled assets from `public_folder`. _Be aware that attempting to test this on your machine using rackup or thin will not work_. Rack does not serve files from `\public`. If you want to see static assets in action without messing with Rack internals, you must run [shotgun](https://github.com/rtomayko/shotgun) or something like it.
+  * `remote` - default in prod - serves compiled assets from S3
+
+`public_folder` - the public folder of your application. By default set to `/public`. If you are using a different public folder, you must set it in this config block as well as in your application.
 
 `prefix` - the path from root where you keep your assets. By default it is `/assets`. Your compiled assets will be placed in `public_folder/prefix.` It will also be the pseudo-folder on S3 where your assets will be stored, so the paths will look something like `http://bucket-name.s3.amazonaws.com/prefix/filename`.
 
@@ -134,9 +138,9 @@ Now on the command line, run `rake assets:sync` and the following will happen:
 3. manifest will be updated
 4. old backups locally and remotely will be deleted
 
-Running your app in development mode will serve uncompiled assets locally (from `/assets`), and running your app in production mode will serve your compiled assets from S3. If you have `remote_assets` set to `false` and are in production mode, your compiled assets will be served from `public/assets`.
+Running your app in development mode will serve uncompiled assets locally (from `/assets`), and running your app in production mode will serve your compiled assets from S3. If you have `serve_assets` set to `local_static` your compiled assets will be served from `public/assets`.
 
-If you want to precompile and upload your assets every time you spin up your app, you can put the configure block directly into config.ru and after config run CloudCrooner.sync.
+If you want to precompile and upload your assets every time you spin up your app, you can put the configure block directly into config.ru and after config run `CloudCrooner.sync`.
 
 
 ## Helpers
@@ -144,17 +148,25 @@ If you want to precompile and upload your assets every time you spin up your app
 Helper methods are provided for use in your views using the [sprockets-helpers](https://github.com/petebrowne/sprockets-helpers) gem.  
 
 `stylesheet_tag` - put this in your views to insert an html tag referencing a stylesheet in the Sprockets load path. For example, if you have `/assets/stylesheets/application.scss` and have placed `assets/stylesheets` in the load path, you would write:
+
     <%= stylesheet_tag 'application' %>
+
 and in dev it will compile to
+    
     <link rel="stylesheet" href="/assets/application.css">
+
 in prod it will compile to 
+
     <link rel="stylesheet" href="http://my-bucket.s3.amazonaws.com/assets/application.css">
 
 `javascript_tag` - similar to `stylesheet_tag`
 
 `asset_tag` - similar to stylesheet, but you pass a block to generate a tag of your choosing. 
+
     asset_tag('main.js') { |path| "<script src=#{path}></script>" }
+
 will generate
+
     <script src=/main.js></script>
 
 `asset_path` - returns the path to an asset, no tag. 

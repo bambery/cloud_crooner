@@ -25,6 +25,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "test-construct"
 
   spec.add_dependency             "sprockets", "~>2.10"
-  spec.add_dependency             "fog", "~> 1.12" 
+  spec.add_dependency             "fog", "~> 1.2" 
   spec.add_dependency             "sprockets-helpers"
 end

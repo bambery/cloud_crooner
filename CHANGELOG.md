@@ -1,3 +1,6 @@
+# v0.0.4 
+* Updated fog dependency to work with ruby 2.1.1
+
 # v0.0.3
 Features:
 * Removed `remote_assets` option, replaced with `serve_assets` which allows for 
